@@ -41,9 +41,6 @@ internal static class Program
             }
             if (!worker)
             {
-                if (!fromInstaller && MessageBox(IntPtr.Zero,
-                    "是否卸载 MinamotoBoard？\n请先关闭白板并确认不再需要当前笔迹。\n文档中的插件和用户设置不会删除。",
-                    "卸载 MinamotoBoard", 0x124) != 6) return 1602;
                 // Run outside INSTALLFOLDER so MSI can remove the installed launcher.
                 string temporary = Path.Combine(Path.GetTempPath(), "MinamotoBoard-Uninstall-" + Guid.NewGuid().ToString("N") + ".exe");
                 File.Copy(Assembly.GetExecutingAssembly().Location, temporary);
@@ -74,7 +71,6 @@ internal static class Program
                 else if (result != 0 && result != 1605)
                     throw new InvalidOperationException("Windows Installer 返回代码 " + result + "，卸载未完成。");
             }
-            MessageBox(IntPtr.Zero, restart ? "卸载完成，请稍后重新启动 Windows。" : "MinamotoBoard 已卸载。", "MinamotoBoard", 0x40);
             return restart ? 3010 : 0;
         }
         catch (Win32Exception ex)
