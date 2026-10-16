@@ -1,31 +1,26 @@
-MinamotoBoard 0.3.0
+MinamotoBoard 0.3.1
 
-默认安装位置：C:\Program Files\MinamotoDev\Board
-从开始菜单打开 MinamotoBoard，或双击此目录中的 MinamotoBoard.exe。
-安装需要管理员授权，正常运行不要求管理员。
-双击安装包使用标准 MSI 向导；已安装时选择“修复”覆盖安装，或选择“删除”卸载。
-从 Windows 设置“已安装的应用”或控制面板卸载，操作前会询问确认。
-开始菜单只提供白板启动项，不添加卸载项，不安装独立卸载程序。
-同版本 0.3.0 的修复包支持覆盖安装并恢复开始菜单启动入口。
-目标环境：Windows 10 22H2 x64，.NET Framework 4.8 或更高版本。
+安装目录：C:\Program Files\MinamotoDev\Board
+运行环境：Windows 10 22H2 x64 或更高版本，.NET Framework 4.8 或更高版本。
+从开始菜单打开 MinamotoBoard。
 
-默认绿板和白笔，底部可以换色、改笔宽、切换橡皮。
-加页：在当前页后插入空白页，之前页面的笔迹保留。
-上一页/下一页：切换页面；中间显示当前页码和总页数，最多 100 页。
-清屏：确认后仅清空当前页笔迹，不改变背景或其他页面；目前不能撤销。
-F11 切换全屏，Esc 退出全屏，Ctrl+Tab 隐藏/显示工具栏。
-工具栏保持单行居中，大屏适度缩小；空间不足时可左右滑动或点击两端按钮。
-当前仍为基础白板预览版，没有保存功能，退出后笔迹会丢失。
+加页、上一页、下一页：管理白板页面，最多 100 页。
+清屏：清空当前页面的全部墨迹，无法撤销。
+F11：切换全屏；Esc：退出全屏；Ctrl+Tab：显示或隐藏工具栏。
+当前没有保存功能，退出后墨迹将丢失。
 
 Plugins：
-点击底部 Plugins 打开管理窗口，可打开插件目录与保存启用设置。
-通常位于 %USERPROFILE%\Documents\MinamotoDev\Board\Plugins。
-实际使用 Windows 文档位置；重定向的文档目录也受支持。
-放入 *.Plugin.dll（以及旁边的依赖）后重启生效。
-插件目录和配置属于当前用户，MSI 卸载不会删除它们。
-仅安装可信插件：插件能修改界面、笔迹，并具有当前用户的文件和网络权限。
-插件故障时可使用 MinamotoBoard.exe --safe-mode 启动，不执行插件代码。
-开发接口和更多说明见此目录中的 PLUGINS.md。
+点击 Plugins 管理插件，设置在重启后生效。
+插件目录：Windows 文档\MinamotoDev\Board\Plugins。
+插件启用设置：%LOCALAPPDATA%\MinamotoDev\Board。
+仅使用可信插件。开发说明见 PLUGINS.md。
+安全模式：MinamotoBoard.exe --safe-mode
+软件渲染：MinamotoBoard.exe --software-rendering
 
-软件渲染兼容模式：MinamotoBoard.exe --software-rendering
-真实触屏、旧电脑性能和学校 Windows 10 环境仍需现场验证。
+卸载：
+在 Windows 设置或控制面板中选择 MinamotoBoard。
+确认页的“删除配置和插件”默认不勾选。
+勾选后，卸载成功时删除当前用户的上述两个目录。
+
+许可证：GPL-3.0-only，见 LICENSE。
+第三方声明：THIRD-PARTY-NOTICES.md、WixUI-LICENSE.txt。

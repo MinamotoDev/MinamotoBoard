@@ -20,13 +20,13 @@ namespace MinamotoBoard.UI
             TextBlock heading = new TextBlock { Text = "Plugins" + (safeMode ? " · 安全模式" : ""), FontSize = 24 };
             DockPanel.SetDock(heading, Dock.Top); layout.Children.Add(heading);
             TextBlock info = new TextBlock { Text = manager.PluginDirectory +
-                "\n仅安装可信插件。插件具有与白板相同的用户权限，可修改界面和笔迹。\n勾选表示启用；添加、移除及启用设置在重启白板后生效。",
+                "\n仅使用可信插件，重启后生效。",
                 TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 12, 0, 12) };
             DockPanel.SetDock(info, Dock.Top); layout.Children.Add(info);
             StackPanel buttons = new StackPanel { Orientation = Orientation.Horizontal };
             DockPanel.SetDock(buttons, Dock.Bottom); layout.Children.Add(buttons);
             Button open = new Button { Content = "打开插件目录", MinHeight = 48, Padding = new Thickness(12) };
-            Button save = new Button { Content = "保存启用设置", MinHeight = 48, Padding = new Thickness(12), Margin = new Thickness(8, 0, 0, 0) };
+            Button save = new Button { Content = "保存", MinHeight = 48, Padding = new Thickness(12), Margin = new Thickness(8, 0, 0, 0) };
             buttons.Children.Add(open); buttons.Children.Add(save);
             TextBlock message = new TextBlock { Text = manager.DiscoveryError ?? "", TextWrapping = TextWrapping.Wrap,
                 Margin = new Thickness(0, 8, 0, 8) };
@@ -41,7 +41,7 @@ namespace MinamotoBoard.UI
                         TextWrapping = TextWrapping.Wrap }, Margin = new Thickness(0, 4, 0, 4) };
                 list.Children.Add(choice); choices.Add(record, choice);
             }
-            if (choices.Count == 0) list.Children.Add(new TextBlock { Text = "暂无插件。将 *.Plugin.dll 放入插件目录后重启白板。", TextWrapping = TextWrapping.Wrap });
+            if (choices.Count == 0) list.Children.Add(new TextBlock { Text = "暂无插件", TextWrapping = TextWrapping.Wrap });
             open.Click += delegate
             {
                 try { Process.Start(new ProcessStartInfo(manager.PluginDirectory) { UseShellExecute = true }); }
@@ -55,7 +55,7 @@ namespace MinamotoBoard.UI
                 {
                     await Task.Run(() => manager.SaveDisabled(disabled));
                     foreach (var pair in choices) pair.Key.Enabled = !disabled.Contains(pair.Key.RelativePath);
-                    message.Text = "已保存，请自行关闭并重新打开白板。当前笔迹不会因修改设置而被清除。";
+                    message.Text = "已保存，重启后生效。";
                 }
                 catch (Exception ex) { message.Text = "保存设置失败：" + ex.Message; }
                 finally { save.IsEnabled = true; }

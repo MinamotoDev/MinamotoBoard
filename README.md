@@ -6,14 +6,13 @@
 
 ## 运行
 
-当前构建的程序：`artifacts\release-0.3.0\app\MinamotoBoard.exe`。双击即可运行。
+当前构建的程序：`artifacts\release-0.3.1\app\MinamotoBoard.exe`。双击即可运行。
 复制到另一台电脑时，请同时复制同目录的 `MinamotoBoard.exe.config` 与 `MinamotoBoard.PluginApi.dll`。
 
-无插件独立版位于 `artifacts\release-0.3.0\MinamotoBoard-no-plugins.exe`，可只复制这一份 EXE。
+无插件独立版位于 `artifacts\release-0.3.1\MinamotoBoard-no-plugins.exe`，可只复制这一份 EXE。
 生成两份 Release 资产可运行 `./scripts/build-release.ps1`，该脚本不运行测试。
 
 常规本地构建的程序位于 `src\MinamotoBoard\bin\Release\MinamotoBoard.exe`。
-初版试写窗口保留；新版本构建使用独立目录，避免覆盖运行中的 EXE。
 
 ## 使用
 
@@ -21,7 +20,7 @@
 - 底部选择画笔、橡皮、五种笔色；笔宽为 2 / 4 / 6 / 10 / 16 DIP。
 - 橡皮为原生局部擦除，直径可选 16 / 32 / 64 DIP。
 - “加页”在当前页后插入空白页；“上一页 / 下一页”切换页面，页码显示当前位置，最多 100 页。
-- “清屏”先确认，再仅删除当前页笔迹，保留背景和其他页；目前不支持撤销清屏。
+- “清屏”确认后删除当前页面的全部墨迹，无法撤销。
 - 选颜色会切回画笔；切换工具保留已选颜色与宽度。
 - 工具栏可以隐藏，底部的“显示工具栏”按钮可恢复。
 - `F11` 切换全屏，`Esc` 退出全屏，`Ctrl+Tab` 隐藏/显示工具栏。
@@ -33,7 +32,7 @@
 旧显卡有显示问题时可显式启动进程级软件渲染，不修改系统配置：
 
 ```powershell
-& .\artifacts\release-0.3.0\app\MinamotoBoard.exe --software-rendering
+& .\artifacts\release-0.3.1\app\MinamotoBoard.exe --software-rendering
 ```
 
 ## 运行时检查

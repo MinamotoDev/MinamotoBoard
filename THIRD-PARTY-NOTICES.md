@@ -8,7 +8,7 @@ MinamotoBoard 自有代码采用 GPL-3.0-only。以下第三方内容保留原�
 - 版权所有：Copyright (c) .NET Foundation and contributors.
 - 许可证：Microsoft Reciprocal License（MS-RL），全文见 [installer/StandardUI/LICENSE.TXT](installer/StandardUI/LICENSE.TXT)。
 - 上游源码：https://github.com/wixtoolset/wix/tree/v5.0.2/src/ext/UI/wixlib
-- `installer/StandardUI/VerifyReadyDlg.wxs` 源自上游 `VerifyReadyDlg.wxs`，保留标准布局和本地化引用；修改了对话框标识、显示条件、修复参数及旧产品卸载事件。
+- `installer/StandardUI/VerifyReadyDlg.wxs` 源自上游 `VerifyReadyDlg.wxs`；修改了对话框标识、显示条件、修复参数、卸载确认文本及旧产品卸载事件，增加了配置清理复选框。
 - `installer/InstallerUI.wxs` 中依据上游标准向导编排的导航代码同样按 MS-RL 提供；本项目调整了安装、升级和卸载的导航与确认条件。
 - 构建使用官方 `WixToolset.UI.wixext` 扩展中的标准对话框、图片、本地化资源与路径验证操作；这些内容保留上游许可，不改授 GPL。
 

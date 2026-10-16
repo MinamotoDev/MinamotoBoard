@@ -1,83 +1,58 @@
 # MinamotoBoard MSI
 
-## 安装
+当前本地构建版本：**0.3.1**，尚未发布 GitHub。
 
-生成文件：`artifacts\installer\MinamotoBoard.msi`，版本 **0.3.0**，x64，单文件内嵌 CAB，无在线下载依赖。
+## 安装与卸载
 
-当前 0.3.0 新增加页、翻页和清屏。[GitHub Release](https://github.com/MinamotoDev/MinamotoBoard/releases/tag/v0.3.0) 提供两份分发文件，本地位于 `artifacts\release-0.3.0`。
+默认安装目录为 `C:\Program Files\MinamotoDev\Board`，遵循系统 `ProgramFiles64Folder`。
+目标环境为 Windows 10 22H2 x64 或更高版本、.NET Framework 4.8 或更高版本。
+安装需要管理员权限，运行白板使用普通用户权限。
 
-本地修复版仍保持 0.3.0：使用 WiX 官方标准对话框库生成的 Windows Installer 原生向导，采用默认布局、图片与简体中文文案，删除自行设计的界面和额外说明。安装需点击确认；已安装时提供标准“修复”/“删除”选项，删除前仍需确认。修复会覆盖程序文件，新包覆盖旧包时使用标准更新确认页。
-使用 Windows Installer 原生注册到设置和控制面板的已安装程序列表，并登记安装位置。
-开始菜单只创建白板启动项，不创建卸载快捷方式；安装目录不放置独立卸载程序。
+安装包使用 WiX 官方标准 Windows Installer 对话框与简体中文界面。
+双击 MSI 后确认安装；已安装时可选择修复或卸载。
+开始菜单提供白板入口，卸载入口位于 Windows 设置和控制面板。
 
-0.2.0 合入用户选定的 v5 铅笔图标：EXE、WPF 主窗口、开始菜单快捷方式和卸载列表。
-本次仅完成 Release 构建和 MSI 打包，按用户要求未运行测试、只读校验脚本或安装程序。
-此前开发过程的测试记录不作为此次正式发布文件的运行验证结果。
+卸载确认页提供“删除配置和插件”复选框，默认关闭。
+勾选后，交互式卸载成功时清理当前用户的：
 
-本地分发文件还提供 `MinamotoBoard-no-plugins.exe`，其插件代码和 API 引用在编译时被移除，同样包含加页和清屏。
-通过 `scripts/build-release.ps1` 生成两份发布资产；本次未运行测试。
+- Windows 文档目录下的 `MinamotoDev\Board`，包含 Plugins。
+- `%LOCALAPPDATA%\MinamotoDev\Board`，包含插件启用设置。
 
-默认安装位置：
+文档目录通过 Windows 已知文件夹解析，支持文档重定向。
+清理在发起卸载的用户上下文中执行，并核对用户 SID；不枚举其他用户。
+配置清理不会在升级、修复、取消或失败的卸载中执行。静默卸载默认不删除配置。
+遇到链接、目录访问失败或文件占用时，清理会显示错误。
 
-```text
-C:\Program Files\MinamotoDev\Board
-```
+新 MSI 对不同产品代码的旧版本执行卸载时，内部维护桥接程序调用系统 msiexec。
+只有 msiexec 需要提升权限；维护协调进程负责在原用户上下文中清理选中的配置。
+维护桥接程序不安装到应用目录，也不创建开始菜单入口；可能留有临时 EXE。
 
-使用 Windows 的 `ProgramFiles64Folder`；若系统的 Program Files 不在 C:，会遵循该系统目录。
-名称采用用户确认的 **MinamotoDev**。
+升级使用固定 UpgradeCode，支持同版本覆盖；旧包移除位于可回滚事务内。
+包语言不影响旧版本识别。安装包和 EXE 当前未签名。
 
-双击 MSI 安装，也可在命令行显示 Windows Installer 的基本进度界面：
+## 构建
 
-```powershell
-msiexec.exe /i .\MinamotoBoard.msi
-```
-
-这是整机安装，写入 Program Files 和所有用户开始菜单，需要管理员授权。
-安装后从开始菜单 **MinamotoBoard** 启动，EXE 为 asInvoker，普通运行不要求管理员。
-插件目录由**运行白板的用户**的 Windows 文档位置解析；安装程序不预先在安装者的文档目录写入插件。
-
-可传入绝对路径覆盖默认目录：
+应用使用 .NET Framework 4.8 Developer Pack 和系统 Framework MSBuild。
+安装包使用固定版本 WiX CLI 5.0.2 与官方 WixToolset.UI.wixext 5.0.2。
+开发机需要可运行构建工具的现代 .NET Runtime。
 
 ```powershell
-msiexec.exe /i .\MinamotoBoard.msi INSTALLFOLDER="D:\Apps\MinamotoDev\Board"
-```
-
-安装包包含应用 EXE、配置、插件 API、`README.txt` 和 `PLUGINS.md` 两份说明。
-**不包含测试程序或自动启用的示例插件**。
-前置条件检查要求 x64、Windows build >= 19045、Framework Release >= 528040；不满足时提示并停止。
-管理员可从 Windows 应用列表卸载，正常交互模式会先显示“是否卸载”确认；高级管理员显式指定静默参数时遵循 Windows Installer 的静默行为。
-升级使用固定 UpgradeCode，允许同版本 0.3.0 的新包覆盖旧包，仍阻止更高版本向低版本降级。
-旧版移除安排在安装事务初始化之后，以支持失败回滚。启动快捷方式改为独立组件管理的普通快捷方式，覆盖安装会重建入口。
-卸载仅移除 MSI 管理的程序文件和快捷方式，不删除用户文档中的插件、启用配置或其他用户文件。
-当前 MSI 未做代码签名；未在学校 Windows 10 目标设备上实装验收。
-
-## 可复现构建
-
-应用构建仍使用 .NET Framework 4.8 Developer Pack 与系统 Framework MSBuild。
-MSI 构建额外使用 **WiX CLI 5.0.2**（构建工具，不是应用运行依赖）。
-先尝试了 Winget 官方 WiX CLI 7，但其运行要求另行接受维护费用条款，没有接受该条款。
-最终使用官方 NuGet 5.0.2 包，解压到仓库忽略目录；不增加现代 .NET SDK。
-开发机已装现代 .NET 8/10 Runtime，`dotnet --roll-forward Major` 可运行此构建工具。
-这里使用旧版工具的限制：未宣称该工具仍在维护期内。构建时使用同版本的官方 `WixToolset.UI.wixext` 扩展；运行时由 Windows Installer 显示原生控件，不安装额外 UI 运行库。直接使用官方标准对话框，不加入自定义许可协议页。
-`installer/StandardUI/VerifyReadyDlg.wxs` 来自 WiX 5.0.2 官方源码，保留全部布局、控件和本地化文案；仅调整显示条件与维护事件以支持旧产品代码的覆盖/卸载。源文件保留版权声明，许可证位于同目录 `LICENSE.TXT`。
-安装界面语言改为简体中文，升级检测忽略包语言，以继续识别此前语言标记为英语的版本。
-当新 MSI 检测到另一个旧产品代码、用户选择“卸载”时，包内的维护桥接程序只调用 Windows Installer 移除同一 UpgradeCode 的产品；它不是独立卸载程序，不安装到程序目录，也不创建开始菜单入口。
-该内部桥接程序需要管理员授权，仅在用户已确认卸载后使用。维护完成后可能留有一个临时 EXE，交由 Windows 临时文件清理处理。
-
-```powershell
-# 首次准备构建工具，需要联网；后续构建无需重复下载。
+# 首次下载构建工具，校验固定 SHA256
 .\installer\bootstrap-wix.ps1
 
-# 编译（不运行测试）
+# 构建应用、无插件版与 MSI
 .\scripts\build-release.ps1
 
-# 生成安装包
+# 单独构建 MSI
 .\installer\build-msi.ps1
 ```
 
-脚本对 WiX CLI 和 UI 扩展包分别校验固定 SHA256。升级工具时需人工核对官方来源并更新固定版本及哈希。
-MSI 源码为 `installer/MinamotoBoard.wxs`，对话框在 `installer/InstallerUI.wxs`，内部桥接源码在 `installer/MaintenanceBridge`。没有服务、计划任务、遥测或安装后自动启动白板。
-需要新版本时同步调整应用 `AssemblyInfo.cs` 和 WiX 的 `Package/@Version`，保留 UpgradeCode 与稳定组件 Guid。
-只读脚本检查 MSI 数据库内容，不执行整机安装。
+分发文件位于 `artifacts\release-0.3.1`：
 
-官方资料：[WiX 5.0.2 NuGet 包](https://www.nuget.org/packages/wix/5.0.2)、[WiX Scope](https://docs.firegiant.com/wix/schema/wxs/packagescopetype/)、[RegistrySearch](https://docs.firegiant.com/wix/schema/wxs/registrysearch/)。
+- `MinamotoBoard.msi`
+- `MinamotoBoard-no-plugins.exe`
+
+安装包包含应用、插件 API、使用说明、GPL-3.0 和第三方许可证。
+WiX 标准确认页源码位于 `installer/StandardUI`，按 MS-RL 提供；修改范围见 `THIRD-PARTY-NOTICES.md`。
+
+[WiX UI 文档](https://docs.firegiant.com/wix/tools/wixext/wixui/) · [Windows Installer 自定义操作安全](https://learn.microsoft.com/en-us/windows/win32/msi/custom-action-security)

@@ -63,7 +63,7 @@ namespace MinamotoBoard.UI
             if (!IsLoaded) { plugins.Dispose(); return; }
             plugins.LoadOnUiThread(this, Board, ToolsPanel, PluginOverlay, safeMode);
             PluginsButton.IsEnabled = true;
-            PluginsButton.ToolTip = safeMode ? "安全模式：未加载插件" : "管理插件（修改后重启生效）";
+            PluginsButton.ToolTip = safeMode ? "安全模式" : "管理插件";
         }
 #endif
 
@@ -146,7 +146,7 @@ namespace MinamotoBoard.UI
             NextPageButton.IsEnabled = document.CanMoveNext;
             AddPageButton.IsEnabled = document.CanAddPage;
             AddPageButton.ToolTip = document.CanAddPage
-                ? "在当前页后新增空白页，保留原页面"
+                ? "新增空白页"
                 : "已达到 100 页上限";
         }
 
@@ -175,8 +175,8 @@ namespace MinamotoBoard.UI
         {
             if (IsWriting() || Board.Strokes.Count == 0) return;
             if (MessageBox.Show(this,
-                string.Format("清空第 {0} 页的全部笔迹吗？\n目前不支持撤销。其他页面和背景颜色不会改变。", document.CurrentIndex + 1),
-                "清空当前页", MessageBoxButton.OKCancel, MessageBoxImage.Warning,
+                "清空当前页面的全部墨迹吗？您无法撤销此操作。",
+                "清屏", MessageBoxButton.OKCancel, MessageBoxImage.Warning,
                 MessageBoxResult.Cancel) != MessageBoxResult.OK) return;
             Board.Strokes.Clear();
             Board.Focus();
@@ -266,8 +266,8 @@ namespace MinamotoBoard.UI
             CaptureCurrentPage();
             if (!document.HasInk) return;
             e.Cancel = MessageBox.Show(this,
-                "当前预览版尚未提供保存功能。关闭后，所有页面的笔迹都将丢失。\n确定关闭吗？",
-                "关闭绿板", MessageBoxButton.OKCancel, MessageBoxImage.Warning,
+                "确定退出应用程序吗？未保存的墨迹将全部丢失。",
+                "关闭", MessageBoxButton.OKCancel, MessageBoxImage.Warning,
                 MessageBoxResult.Cancel) != MessageBoxResult.OK;
         }
     }

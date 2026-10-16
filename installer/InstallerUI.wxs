@@ -43,6 +43,7 @@
     <Show Dialog="override ResumeDlg" Before="ProgressDlg" Condition="Installed AND (RESUME OR Preselected) AND NOT (REMOVE~=&quot;ALL&quot;)" />
     <Show Dialog="BoardVerifyReadyDlg" Before="ProgressDlg" Condition="BOARD_DIRECT_REMOVE" />
     <Show Dialog="override UserExit" OnExit="cancel" Condition="NOT BOARD_REMOVE_RELATED" />
+    <Custom Action="DeleteBoardUserData" After="ExecuteAction" Condition="Installed AND REMOVE~=&quot;ALL&quot; AND BOARD_DELETE_CONFIG=&quot;1&quot; AND NOT UPGRADINGPRODUCTCODE" />
    </InstallUISequence>
   </UI>
   <SetProperty Id="BOARD_DIRECT_REMOVE" Value="1" After="CostFinalize" Sequence="ui" Condition="Installed AND REMOVE~=&quot;ALL&quot;" />

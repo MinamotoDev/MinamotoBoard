@@ -1,6 +1,6 @@
 <!-- Copyright (c) .NET Foundation and contributors. All rights reserved. Licensed under the Microsoft Reciprocal License. See LICENSE.TXT file in the project root for full license information. -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
-  <!-- Standard WiX 5.0.2 VerifyReadyDlg: unchanged layout and localization. Conditions also support a related ProductCode; uninstall delegates to the existing MSI bridge. -->
+  <!-- WiX 5.0.2 standard confirmation layout, with opt-in user-data cleanup and related-product maintenance. -->
   <Fragment>
     <UI>
       <Dialog Id="BoardVerifyReadyDlg" Width="370" Height="270" Title="!(loc.VerifyReadyDlg_Title)" TrackDiskSpace="yes">
@@ -84,13 +84,14 @@
         <Control Id="RepairTitle" Type="Text" X="15" Y="15" Width="300" Height="15" Transparent="yes" NoPrefix="yes" Hidden="yes" Text="!(loc.VerifyReadyDlgRepairTitle)" ShowCondition="WixUI_InstallMode = &quot;Repair&quot;" />
         <Control Id="RepairText" Type="Text" X="25" Y="70" Width="320" Height="80" Hidden="yes" NoPrefix="yes" Text="!(loc.VerifyReadyDlgRepairText)" ShowCondition="WixUI_InstallMode = &quot;Repair&quot;" />
         <Control Id="RemoveTitle" Type="Text" X="15" Y="15" Width="300" Height="15" Transparent="yes" NoPrefix="yes" Hidden="yes" Text="!(loc.VerifyReadyDlgRemoveTitle)" ShowCondition="WixUI_InstallMode = &quot;Remove&quot;" />
-        <Control Id="RemoveText" Type="Text" X="25" Y="70" Width="320" Height="80" Hidden="yes" NoPrefix="yes" Text="!(loc.VerifyReadyDlgRemoveText)" ShowCondition="WixUI_InstallMode = &quot;Remove&quot;" />
+        <Control Id="RemoveText" Type="Text" X="25" Y="70" Width="320" Height="40" Hidden="yes" NoPrefix="yes" Text="是否卸载 [ProductName]？" ShowCondition="WixUI_InstallMode = &quot;Remove&quot;" />
+        <Control Id="DeleteConfig" Type="CheckBox" X="25" Y="120" Width="320" Height="18" Hidden="yes" Property="BOARD_DELETE_CONFIG" CheckBoxValue="1" Text="删除配置和插件" Help="删除当前用户文档和本地应用数据中的 MinamotoDev\Board 文件夹" ShowCondition="WixUI_InstallMode = &quot;Remove&quot;" />
         <Control Id="UpdateTitle" Type="Text" X="15" Y="15" Width="300" Height="15" Transparent="yes" NoPrefix="yes" Hidden="yes" Text="!(loc.VerifyReadyDlgUpdateTitle)" ShowCondition="WixUI_InstallMode = &quot;Update&quot;" />
         <Control Id="UpdateText" Type="Text" X="25" Y="70" Width="320" Height="80" Hidden="yes" NoPrefix="yes" Text="!(loc.VerifyReadyDlgUpdateText)" ShowCondition="WixUI_InstallMode = &quot;Update&quot;" />
-        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)" DefaultCondition="BOARD_DIRECT_REMOVE">
           <Publish Event="SpawnDialog" Value="CancelDlg" />
         </Control>
-        <Control Id="Back" Type="PushButton" X="156" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" DefaultCondition="WixUI_InstallMode = &quot;Remove&quot;" />
+        <Control Id="Back" Type="PushButton" X="156" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" EnableCondition="NOT BOARD_DIRECT_REMOVE" DisableCondition="BOARD_DIRECT_REMOVE" DefaultCondition="WixUI_InstallMode = &quot;Remove&quot; AND NOT BOARD_DIRECT_REMOVE" />
         <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="!(loc.VerifyReadyDlgBannerBitmap)" />
         <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
         <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />

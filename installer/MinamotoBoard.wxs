@@ -1,5 +1,5 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
- <Package Name="MinamotoBoard" Manufacturer="MinamotoDev" Version="0.3.0" Language="2052"
+ <Package Name="MinamotoBoard" Manufacturer="MinamotoDev" Version="0.3.1" Language="2052"
           UpgradeCode="8D1AF8D5-305C-4670-9E17-A0DB4FB394B3" Scope="perMachine" InstallerVersion="500" Codepage="936">
   <MajorUpgrade AllowSameVersionUpgrades="yes" IgnoreLanguage="yes" Schedule="afterInstallInitialize" DowngradeErrorMessage="A newer version of MinamotoBoard is already installed." />
   <MediaTemplate EmbedCab="yes" />
@@ -11,7 +11,10 @@
   <!-- Used only from the UI of a new MSI to remove a related, different product.
        It delegates to Windows Installer and is never installed as an application. -->
   <Binary Id="MaintenanceBridge" SourceFile="$(var.MaintenanceSource)\BoardMaintenanceBridge.exe" />
-  <CustomAction Id="RemoveRelatedProductFromUI" BinaryRef="MaintenanceBridge" ExeCommand="--from-installer" Execute="immediate" Return="asyncNoWait" Impersonate="yes" />
+  <Property Id="BOARD_DELETE_CONFIG" Secure="yes" />
+  <CustomAction Id="RemoveRelatedProductFromUI" BinaryRef="MaintenanceBridge" ExeCommand="--from-installer --delete-config=[BOARD_DELETE_CONFIG] --user-sid=[UserSID]" Execute="immediate" Return="asyncNoWait" Impersonate="yes" />
+  <!-- Run only after a successful interactive uninstall, in the UI user's context. -->
+  <CustomAction Id="DeleteBoardUserData" BinaryRef="MaintenanceBridge" ExeCommand="--cleanup --user-sid=[UserSID]" Execute="immediate" Return="ignore" Impersonate="yes" />
   <Icon Id="BoardIcon.exe" SourceFile="$(var.DocSource)\src\MinamotoBoard\Assets\MinamotoBoard.ico" />
   <Property Id="ARPPRODUCTICON" Value="BoardIcon.exe" />
   <Property Id="NETFXRELEASE" Secure="yes">
@@ -44,6 +47,15 @@
      <Component Id="PluginInstructions" Guid="30EA243A-3ECC-4347-BFD3-EF65AD797B43">
       <File Source="$(var.DocSource)\docs\PLUGINS.md" KeyPath="yes" />
      </Component>
+     <Component Id="ProjectLicense" Guid="CBE47DAC-73D2-4F04-9560-57EEFCB62B6C">
+      <File Source="$(var.DocSource)\LICENSE" KeyPath="yes" />
+     </Component>
+     <Component Id="ThirdPartyNotices" Guid="47DFA107-52A7-4EDB-B9FE-C1CF6F0131BE">
+      <File Source="$(var.DocSource)\THIRD-PARTY-NOTICES.md" KeyPath="yes" />
+     </Component>
+     <Component Id="InstallerUiLicense" Guid="E87C493A-21C0-42FC-BAA2-C2F850BA086C">
+      <File Source="$(var.DocSource)\installer\StandardUI\LICENSE.TXT" Name="WixUI-LICENSE.txt" KeyPath="yes" />
+     </Component>
     </Directory>
    </Directory>
   </StandardDirectory>
@@ -59,6 +71,7 @@
    <ComponentRef Id="MainExecutable" /><ComponentRef Id="ApplicationShortcut" /><ComponentRef Id="ApplicationConfig" />
    <ComponentRef Id="PluginApi" /><ComponentRef Id="Instructions" />
    <ComponentRef Id="PluginInstructions" /><ComponentRef Id="MenuFolder" />
+   <ComponentRef Id="ProjectLicense" /><ComponentRef Id="ThirdPartyNotices" /><ComponentRef Id="InstallerUiLicense" />
   </Feature>
  </Package>
 </Wix>
