@@ -15,11 +15,6 @@
 常规本地构建的程序位于 `src\MinamotoBoard\bin\Release\MinamotoBoard.exe`。
 初版试写窗口保留；新版本构建使用独立目录，避免覆盖运行中的 EXE。
 
-- 目标：Windows 10 22H2 **x64**，.NET Framework **4.8 或更高版本**。
-- 无需联网、账号、Microsoft Store、浏览器组件或管理员权限运行。
-- 当前**没有保存功能**；退出或程序异常终止后所有页面的笔迹会丢失。任一页面存在笔迹时关闭会提示确认。
-- 当前不是已通过学校实机验收的正式发行版。
-
 ## 使用
 
 - 启动默认全屏，绿板 `#236B45`，白色圆头画笔，4 DIP。
@@ -41,34 +36,6 @@
 & .\artifacts\release-0.3.0\app\MinamotoBoard.exe --software-rendering
 ```
 
-## 技术选型
-
-选择 **C# + .NET Framework 4.8 + WPF + 原生 InkCanvas**，无第三方运行依赖。
-
-| 比较项 | .NET Framework 4.8 | 现代 .NET + WPF |
-| --- | --- | --- |
-| 目标系统部署 | Windows 10 22H2 原版包含 4.8；复制应用文件即可，仍需现场检查运行时 | Framework-dependent 需要另装匹配的 Desktop Runtime |
-| 离线方案 | 使用 Windows 已有运行时 | Self-contained 可携带运行时，但应用目录更大，运行时补丁需随应用维护 |
-| HDD / 磁盘占用 | 无需附带运行时，本项目实际 EXE 15,872 字节，配置 281 字节 | 携带运行时增加部署体积；本次未构建对比包 |
-| 启动 / 内存 | 以已有系统组件减少部署负担；不据此声称速度更快或内存必然更低 | 可用现代运行时优化；具体差异必须用相同应用实测 |
-| 编译 / 维护 | 安装 4.8 Developer Pack 后可用 Windows Framework MSBuild；API 成熟 | SDK 工具链更现代，适合后续升级，但需要维护 SDK 和运行时版本 |
-| 官方支持边界 | Framework 支持跟随宿主 Windows 的生命周期，不能延长操作系统支持 | 当前微软安装页的 Windows 10 支持范围有限制；Self-contained 不改变操作系统支持状态 |
-
-在目标设备离线、普通用户、HDD、4GB 内存的约束下，优先选择系统自带的 4.8。
-本次开发机已通过 Winget 安装 **4.8 Developer Pack**，未安装大型 IDE 或现代 .NET SDK。
-开发机运行的是 Framework 4.8.1，使用 **4.8 目标引用程序集**编译，不将 4.8.1 当作最低运行要求。
-
-截至 2026-10-16，普通 Windows 10 22H2 常规支持已于 2025-10-14 结束。
-需要学校 IT 核实系统版本及其 ESU/组织支持资格；本项目不能宣称普通未延长支持的系统仍获微软常规支持。
-
-官方依据：
-
-- [Windows 内置 Framework 版本](https://learn.microsoft.com/en-us/dotnet/framework/install/on-windows-and-server)
-- [Framework 生命周期](https://learn.microsoft.com/en-us/lifecycle/faq/dotnet-framework)
-- [现代 .NET 的 Windows 支持与安装](https://learn.microsoft.com/en-us/dotnet/core/install/windows)
-- [现代 .NET 的部署模式](https://learn.microsoft.com/en-us/dotnet/core/deploying/)
-- [InkCanvas 原生能力](https://learn.microsoft.com/en-us/dotnet/api/system.windows.controls.inkcanvas?view=netframework-4.8)
-
 ## 运行时检查
 
 在目标电脑运行只读检查，不安装或更改系统组件：
@@ -85,25 +52,6 @@
 
 `Release >= 528040` 表示 Framework 4.8 或更高版本。
 这不是触屏测试或操作系统支持状态检查。[微软检测方法](https://learn.microsoft.com/en-us/dotnet/framework/install/how-to-determine-which-versions-are-installed)
-
-## 构建与测试
-
-开发工具首选 Winget 安装 4.8 Developer Pack：
-
-```powershell
-winget install --id Microsoft.DotNet.Framework.DeveloperPack_4 --version 4.8 --exact --source winget
-.\build.ps1 -Test
-```
-
-已有窗口正在运行时，请勿覆盖它占用的 EXE，可指定一个新的输出目录：
-
-```powershell
-.\build.ps1 -Test -OutputDirectory artifacts\verified-next
-```
-
-脚本不自动下载依赖、不改变 PowerShell 执行策略。也可在具备 .NET Framework 4.8 开发工具的 Visual Studio 中打开 `MinamotoBoard.sln`，选择 `Release | x64`。
-测试程序为无第三方测试框架的 STA 控制台，任一断言失败返回非零退出码。
-包含真实 DLL 发现与加载、示例 UI 行为、禁用设置、安全模式、损坏 DLL、重复 Id、初始化清理和按钮回调错误测试。
 
 ## 结构
 
@@ -125,12 +73,3 @@ tests/MinamotoBoard.Tests/      自动化场景测试
 scripts/check-runtime.ps1      只读先决条件检查
 docs/TEST-REPORT.md             当前测试证据和待验项目
 ```
-
-项目从空仓库创建。页面模型已经引入；Services、Persistence 将在有实际需求时再增加。
-内置功能没有后台服务、网络请求、遥测、动画循环、同步书写磁盘 I/O 或背景图片。第三方插件行为由其实现决定。
-
-## 下一阶段
-
-后续优先实现增量撤销/重做，覆盖书写、擦除和清屏；再考虑页面删除、独立历史及笔迹内存管理。
-保存、加载、PNG 导出与恢复属于第三阶段，本次未实现。
-真实触屏、多 DPI、老旧电脑和大量笔迹的验证清单见测试报告。
