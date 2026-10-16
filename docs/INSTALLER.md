@@ -1,6 +1,6 @@
 # MinamotoBoard MSI
 
-当前版本：**0.3.1**。[GitHub Release](https://github.com/MinamotoDev/MinamotoBoard/releases/tag/v0.3.1)。
+当前本地构建版本：**0.4.0**，尚未发布 GitHub。
 
 ## 安装与卸载
 
@@ -47,7 +47,7 @@
 .\installer\build-msi.ps1
 ```
 
-分发文件位于 `artifacts\release-0.3.1`：
+分发文件位于 `artifacts\release-0.4.0`：
 
 - `MinamotoBoard.msi`
 - `MinamotoBoard-no-plugins.exe`

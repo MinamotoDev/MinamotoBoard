@@ -212,12 +212,7 @@ namespace MinamotoBoard.UI
             if (plugins == null) return;
             new SettingsWindow(plugins, safeMode) { Owner = this }.ShowDialog();
 #else
-            new Window
-            {
-                Title = "设置", Owner = this, Width = 600, Height = 420,
-                MinWidth = 360, MinHeight = 240, ShowInTaskbar = false,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner
-            }.ShowDialog();
+            new SettingsWindow { Owner = this }.ShowDialog();
 #endif
         }
 

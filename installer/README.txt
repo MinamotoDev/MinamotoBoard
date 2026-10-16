@@ -1,4 +1,4 @@
-MinamotoBoard 0.3.1
+MinamotoBoard 0.4.0
 
 安装目录：C:\Program Files\MinamotoDev\Board
 运行环境：Windows 10 22H2 x64 或更高版本，.NET Framework 4.8 或更高版本。

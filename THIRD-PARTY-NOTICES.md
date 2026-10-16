@@ -13,3 +13,8 @@ MinamotoBoard 自有代码采用 GPL-3.0-only。以下第三方内容保留原�
 - 构建使用官方 `WixToolset.UI.wixext` 扩展中的标准对话框、图片、本地化资源与路径验证操作；这些内容保留上游许可，不改授 GPL。
 
 上述安装界面内容与白板应用为独立文件和组件；此处的例外不会改变白板应用代码的 GPL-3.0-only 授权。
+
+## 关于页图片
+
+- GitHub 图标来自 https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png ，用于链接项目仓库；相关品牌权利属于 GitHub，使用说明见 https://brand.github.com/foundations/logo 。
+- 维护人员头像由项目维护方提供，分别用于“丹羽　空”和 MinamotoDev 的身份展示，不属于项目代码的 GPL 授权范围。

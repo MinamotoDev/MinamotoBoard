@@ -5,20 +5,34 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Media.Imaging;
+#if !NO_PLUGINS
 using MinamotoBoard.Plugins;
+#endif
 
 namespace MinamotoBoard.UI
 {
     public sealed class SettingsWindow : Window
     {
-        public SettingsWindow(PluginManager manager, bool safeMode)
+        private readonly TabControl sections;
+
+        public SettingsWindow()
         {
             Title = "设置"; Width = 720; Height = 540;
             MinWidth = 480; MinHeight = 360; WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            DockPanel layout = new DockPanel { Margin = new Thickness(12) };
-            TabControl sections = new TabControl { Margin = new Thickness(12) };
-            sections.Items.Add(new TabItem { Header = "插件", Content = layout });
+            ShowInTaskbar = false;
+            sections = new TabControl { Margin = new Thickness(12) };
+            sections.Items.Add(new TabItem { Header = "关于", Content = CreateAboutPage() });
             Content = sections;
+        }
+
+#if !NO_PLUGINS
+        public SettingsWindow(PluginManager manager, bool safeMode) : this()
+        {
+            DockPanel layout = new DockPanel { Margin = new Thickness(12) };
+            sections.Items.Insert(0, new TabItem { Header = "插件", Content = layout });
+            sections.SelectedIndex = 0;
             TextBlock info = new TextBlock { Text = manager.PluginDirectory +
                 "\n仅使用可信插件，重启后生效。" + (safeMode ? "\n安全模式" : ""),
                 TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 12, 0, 12) };
@@ -60,6 +74,63 @@ namespace MinamotoBoard.UI
                 catch (Exception ex) { message.Text = "保存设置失败：" + ex.Message; }
                 finally { save.IsEnabled = true; }
             };
+        }
+#endif
+
+        private UIElement CreateAboutPage()
+        {
+            StackPanel layout = new StackPanel { Margin = new Thickness(20) };
+            layout.Children.Add(new TextBlock { Text = "MinamotoBoard", FontSize = 22,
+                FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 16) });
+            const string repository = "https://github.com/MinamotoDev/MinamotoBoard";
+            DockPanel project = new DockPanel { Margin = new Thickness(0, 0, 0, 24) };
+            Button github = new Button { Content = AssetImage("GitHub-Mark.png", 32), Width = 48, Height = 48,
+                Padding = new Thickness(8), ToolTip = repository };
+            System.Windows.Automation.AutomationProperties.SetName(github, "访问 GitHub 项目");
+            github.Click += delegate { OpenLink(repository); };
+            DockPanel.SetDock(github, Dock.Left); project.Children.Add(github);
+            project.Children.Add(new TextBlock { Text = repository, TextWrapping = TextWrapping.Wrap,
+                VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) });
+            layout.Children.Add(project);
+            layout.Children.Add(new TextBlock { Text = "维护人员", FontSize = 16,
+                FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 12) });
+            layout.Children.Add(Maintainer("丹羽　空", "NiwaSora.jpg", null));
+            layout.Children.Add(Maintainer("MinamotoDev", "MinamotoDev.png", "https://github.com/MinamotoDev"));
+            return new ScrollViewer { Content = layout, VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
+        }
+
+        private UIElement Maintainer(string name, string avatar, string address)
+        {
+            DockPanel row = new DockPanel { Margin = new Thickness(0, 0, 0, 16) };
+            Image image = AssetImage(avatar, 56);
+            image.Margin = new Thickness(0, 0, 14, 0);
+            DockPanel.SetDock(image, Dock.Left); row.Children.Add(image);
+            TextBlock label = new TextBlock { FontSize = 16, VerticalAlignment = VerticalAlignment.Center };
+            if (address == null) label.Text = name;
+            else
+            {
+                Hyperlink link = new Hyperlink(new Run(name)) { NavigateUri = new Uri(address) };
+                link.RequestNavigate += delegate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+                {
+                    OpenLink(address); e.Handled = true;
+                };
+                label.Inlines.Add(link);
+            }
+            row.Children.Add(label);
+            return row;
+        }
+
+        private static Image AssetImage(string name, double size)
+        {
+            return new Image { Width = size, Height = size,
+                Source = new BitmapImage(new Uri("pack://application:,,,/Assets/About/" + name, UriKind.Absolute)) };
+        }
+
+        private void OpenLink(string address)
+        {
+            try { Process.Start(new ProcessStartInfo(address) { UseShellExecute = true }); }
+            catch (Exception) { MessageBox.Show(this, "无法打开链接。", "MinamotoBoard", MessageBoxButton.OK, MessageBoxImage.Error); }
         }
     }
 }

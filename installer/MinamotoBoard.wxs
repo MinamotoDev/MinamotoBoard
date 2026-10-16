@@ -1,5 +1,5 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
- <Package Name="MinamotoBoard" Manufacturer="MinamotoDev" Version="0.3.1" Language="2052"
+ <Package Name="MinamotoBoard" Manufacturer="MinamotoDev" Version="0.4.0" Language="2052"
           UpgradeCode="8D1AF8D5-305C-4670-9E17-A0DB4FB394B3" Scope="perMachine" InstallerVersion="500" Codepage="936">
   <MajorUpgrade AllowSameVersionUpgrades="yes" IgnoreLanguage="yes" Schedule="afterInstallInitialize" DowngradeErrorMessage="A newer version of MinamotoBoard is already installed." />
   <MediaTemplate EmbedCab="yes" />

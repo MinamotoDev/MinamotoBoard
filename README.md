@@ -6,10 +6,10 @@
 
 ## 运行
 
-当前构建的程序：`artifacts\release-0.3.1\app\MinamotoBoard.exe`。双击即可运行。
+当前构建的程序：`artifacts\release-0.4.0\app\MinamotoBoard.exe`。双击即可运行。
 复制到另一台电脑时，请同时复制同目录的 `MinamotoBoard.exe.config` 与 `MinamotoBoard.PluginApi.dll`。
 
-无插件独立版位于 `artifacts\release-0.3.1\MinamotoBoard-no-plugins.exe`，可只复制这一份 EXE。
+无插件独立版位于 `artifacts\release-0.4.0\MinamotoBoard-no-plugins.exe`，可只复制这一份 EXE。
 生成两份 Release 资产可运行 `./scripts/build-release.ps1`，该脚本不运行测试。
 
 常规本地构建的程序位于 `src\MinamotoBoard\bin\Release\MinamotoBoard.exe`。
@@ -32,7 +32,7 @@
 旧显卡有显示问题时可显式启动进程级软件渲染，不修改系统配置：
 
 ```powershell
-& .\artifacts\release-0.3.1\app\MinamotoBoard.exe --software-rendering
+& .\artifacts\release-0.4.0\app\MinamotoBoard.exe --software-rendering
 ```
 
 ## 运行时检查

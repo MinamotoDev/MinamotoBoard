@@ -1,5 +1,5 @@
 # Build both official release assets. No tests or application launches are performed.
-param([string]$OutputDirectory = 'artifacts\release-0.3.1')
+param([string]$OutputDirectory = 'artifacts\release-0.4.0')
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path -Parent $PSScriptRoot
 $taskMsbuild = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe'
