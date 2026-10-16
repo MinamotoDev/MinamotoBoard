@@ -73,3 +73,13 @@ tests/MinamotoBoard.Tests/      自动化场景测试
 scripts/check-runtime.ps1      只读先决条件检查
 docs/TEST-REPORT.md             当前测试证据和待验项目
 ```
+
+## 许可证
+
+Copyright (C) 2026 MinamotoDev
+
+除下述第三方文件外，MinamotoBoard 项目代码采用 **GNU General Public License v3.0 only**（`GPL-3.0-only`）。你可以依据 GNU 通用公共许可证第 3 版的条款重新分发和修改本项目。
+
+本程序不提供任何担保，包括适销性或特定用途适用性的默示担保。完整条款见 [LICENSE](LICENSE)。
+
+WiX 标准安装界面相关文件继续遵循其原有 **Microsoft Reciprocal License（MS-RL）**，不改授 GPL；来源、修改范围和许可证位置见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。
