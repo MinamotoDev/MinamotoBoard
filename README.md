@@ -1,14 +1,21 @@
 # MinamotoBoard
 
-面向学校触屏电脑的轻量 WPF 绿板。当前仅完成**第一阶段 MVP**。
+面向学校触屏电脑的轻量 WPF 绿板。当前完成基础白板 MVP，并按追加需求提供 **Plugins 和 MSI 安装包（0.2.0）**。
+
+新增入口：底部 **Plugins** 按钮。插件可新增工具、访问笔迹并修改 WPF 界面；[插件开发与使用说明](docs/PLUGINS.md)。
+插件通常位于 `%USERPROFILE%\Documents\MinamotoDev\Board\Plugins`，使用 Windows 实际文档位置，支持文档重定向。
+`--safe-mode` 启动时不执行插件。
+
+MSI：`artifacts\installer\MinamotoBoard.msi`，默认安装到 `C:\Program Files\MinamotoDev\Board`。
+安装需要管理员授权，运行白板仍使用普通用户。[安装与构建说明](docs/INSTALLER.md)
 
 ## 运行
 
-本次验证后的程序：`artifacts\verified\MinamotoBoard.exe`。双击即可运行。
-复制到另一台电脑时，请同时复制同目录的 `MinamotoBoard.exe.config`。
+当前插件版验证后的程序：`artifacts\plugins-release\MinamotoBoard.exe`。双击即可运行。
+复制到另一台电脑时，请同时复制同目录的 `MinamotoBoard.exe.config` 与 `MinamotoBoard.PluginApi.dll`。
 
 常规本地构建的程序位于 `src\MinamotoBoard\bin\Release\MinamotoBoard.exe`。
-本次该目录中的预览窗口已有人试写，故保留窗口，最终验证构建放在独立的 `artifacts\verified`。
+初版试写窗口保留；新版本构建使用独立目录，避免覆盖运行中的 EXE。
 
 - 目标：Windows 10 22H2 **x64**，.NET Framework **4.8 或更高版本**。
 - 无需联网、账号、Microsoft Store、浏览器组件或管理员权限运行。
@@ -31,7 +38,7 @@
 旧显卡有显示问题时可显式启动进程级软件渲染，不修改系统配置：
 
 ```powershell
-& .\artifacts\verified\MinamotoBoard.exe --software-rendering
+& .\artifacts\plugins-release\MinamotoBoard.exe --software-rendering
 ```
 
 ## 技术选型
@@ -96,6 +103,7 @@ winget install --id Microsoft.DotNet.Framework.DeveloperPack_4 --version 4.8 --e
 
 脚本不自动下载依赖、不改变 PowerShell 执行策略。也可在具备 .NET Framework 4.8 开发工具的 Visual Studio 中打开 `MinamotoBoard.sln`，选择 `Release | x64`。
 测试程序为无第三方测试框架的 STA 控制台，任一断言失败返回非零退出码。
+包含真实 DLL 发现与加载、示例 UI 行为、禁用设置、安全模式、损坏 DLL、重复 Id、初始化清理和按钮回调错误测试。
 
 ## 结构
 
@@ -108,13 +116,17 @@ src/MinamotoBoard/
   UI/MainWindow.xaml           原生 WPF 工具栏与画布
   UI/MainWindow.xaml.cs        工具选择、全屏与关闭确认
   Ink/InkTools.cs              原生笔迹工具配置
+  Plugins/                     插件发现、生命周期与 UI 扩展
+src/MinamotoBoard.PluginApi/    独立 API 程序集
+samples/BoardTheme.Plugin/      可编译的改 UI / 新工具示例
+installer/                     MSI 源码、构建及只读校验
 tests/MinamotoBoard.Tests/      自动化场景测试
 scripts/check-runtime.ps1      只读先决条件检查
 docs/TEST-REPORT.md             当前测试证据和待验项目
 ```
 
 本次仓库原为空，仅创建新文件。Models、Services、Persistence 将在对应阶段有实际需求时引入。
-没有后台服务、网络请求、遥测、动画循环、同步书写磁盘 I/O 或背景图片。
+内置功能没有后台服务、网络请求、遥测、动画循环、同步书写磁盘 I/O 或背景图片。第三方插件行为由其实现决定。
 
 ## 下一阶段
 

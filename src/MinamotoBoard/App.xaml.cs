@@ -14,7 +14,8 @@ namespace MinamotoBoard
             // Explicit, per-process fallback for older graphics drivers. No system changes.
             if (Array.Exists(e.Args, a => string.Equals(a, "--software-rendering", StringComparison.OrdinalIgnoreCase)))
                 RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
-            MainWindow = new MainWindow();
+            bool safeMode = Array.Exists(e.Args, a => string.Equals(a, "--safe-mode", StringComparison.OrdinalIgnoreCase));
+            MainWindow = new MainWindow(safeMode);
             MainWindow.Show();
         }
     }

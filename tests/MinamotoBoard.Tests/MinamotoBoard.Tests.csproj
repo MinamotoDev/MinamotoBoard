@@ -17,6 +17,13 @@
    <Project>{281A2EB6-B53B-4407-9386-54F96FD9DA25}</Project><Name>MinamotoBoard</Name>
   </ProjectReference>
   <Compile Include="Program.cs" />
+  <Compile Include="PluginTests.cs" />
+  <ProjectReference Include="..\..\src\MinamotoBoard.PluginApi\MinamotoBoard.PluginApi.csproj">
+   <Project>{BF65C97B-734E-434A-915A-0F167F46DE18}</Project><Name>MinamotoBoard.PluginApi</Name>
+  </ProjectReference>
+  <ProjectReference Include="..\..\samples\BoardTheme.Plugin\BoardTheme.Plugin.csproj">
+   <Project>{76C76A06-BFB9-4CA0-B9A5-56417BA86FD0}</Project><Name>BoardTheme.Plugin</Name>
+  </ProjectReference>
  </ItemGroup>
  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

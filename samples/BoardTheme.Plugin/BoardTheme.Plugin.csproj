@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+ <PropertyGroup>
+  <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+  <Platform Condition="'$(Platform)' == ''">x64</Platform>
+  <ProjectGuid>{76C76A06-BFB9-4CA0-B9A5-56417BA86FD0}</ProjectGuid>
+  <OutputType>Library</OutputType><AssemblyName>BoardTheme.Plugin</AssemblyName>
+  <TargetFrameworkVersion>v4.8</TargetFrameworkVersion><PlatformTarget>x64</PlatformTarget>
+  <OutputPath>bin\$(Configuration)\</OutputPath><WarningLevel>4</WarningLevel><TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+ </PropertyGroup>
+ <ItemGroup>
+  <Reference Include="System" /><Reference Include="System.Xaml" /><Reference Include="WindowsBase" /><Reference Include="PresentationCore" /><Reference Include="PresentationFramework" />
+  <ProjectReference Include="..\..\src\MinamotoBoard.PluginApi\MinamotoBoard.PluginApi.csproj">
+   <Project>{BF65C97B-734E-434A-915A-0F167F46DE18}</Project><Name>MinamotoBoard.PluginApi</Name>
+  </ProjectReference>
+  <Compile Include="BoardThemePlugin.cs" />
+ </ItemGroup>
+ <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

@@ -1,0 +1,52 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+ <Package Name="MinamotoBoard" Manufacturer="MinamotoDev" Version="0.2.0" Language="1033"
+          UpgradeCode="8D1AF8D5-305C-4670-9E17-A0DB4FB394B3" Scope="perMachine" InstallerVersion="500">
+  <MajorUpgrade DowngradeErrorMessage="A newer version of MinamotoBoard is already installed." />
+  <MediaTemplate EmbedCab="yes" />
+  <Property Id="ARPNOMODIFY" Value="1" />
+  <Property Id="NETFXRELEASE" Secure="yes">
+   <RegistrySearch Id="FindNetFx" Root="HKLM" Key="SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" Name="Release" Type="raw" Bitness="always64" />
+  </Property>
+  <Property Id="OSBUILD" Secure="yes">
+   <RegistrySearch Id="FindWindowsBuild" Root="HKLM" Key="SOFTWARE\Microsoft\Windows NT\CurrentVersion" Name="CurrentBuildNumber" Type="raw" Bitness="always64" />
+  </Property>
+  <Launch Condition="Installed OR (VersionNT64 AND OSBUILD &gt;= 19045)" Message="MinamotoBoard requires x64 Windows 10 22H2 or later." />
+  <Launch Condition="Installed OR (NETFXRELEASE &gt;= &quot;#528040&quot;)" Message="MinamotoBoard requires .NET Framework 4.8 or later. This offline installer does not download runtimes." />
+  <StandardDirectory Id="ProgramFiles64Folder">
+   <Directory Id="MinamotoDevFolder" Name="MinamotoDev">
+    <Directory Id="INSTALLFOLDER" Name="Board">
+     <Component Id="MainExecutable" Guid="C414F76E-9B82-4A60-A17F-6A2AB04A14C9">
+      <File Id="BoardExe" Source="$(var.AppSource)\MinamotoBoard.exe" KeyPath="yes">
+       <Shortcut Id="StartMenuShortcut" Directory="ApplicationMenuFolder" Name="MinamotoBoard" WorkingDirectory="INSTALLFOLDER" Advertise="yes" />
+      </File>
+     </Component>
+     <Component Id="ApplicationConfig" Guid="88C5BFD9-2DCE-4B01-8021-2F91E745D05C">
+      <File Source="$(var.AppSource)\MinamotoBoard.exe.config" KeyPath="yes" />
+     </Component>
+     <Component Id="PluginApi" Guid="580821B9-C4B7-49F0-A699-EB2BBEAF3637">
+      <File Source="$(var.AppSource)\MinamotoBoard.PluginApi.dll" KeyPath="yes" />
+     </Component>
+     <Component Id="Instructions" Guid="F19B22A2-013C-4421-9EC9-17CB633CB6DD">
+      <File Source="$(var.DocSource)\installer\README.txt" KeyPath="yes" />
+     </Component>
+     <Component Id="PluginInstructions" Guid="30EA243A-3ECC-4347-BFD3-EF65AD797B43">
+      <File Source="$(var.DocSource)\docs\PLUGINS.md" KeyPath="yes" />
+     </Component>
+    </Directory>
+   </Directory>
+  </StandardDirectory>
+  <StandardDirectory Id="ProgramMenuFolder">
+   <Directory Id="ApplicationMenuFolder" Name="MinamotoBoard">
+    <Component Id="MenuFolder" Guid="F2BFCFF6-E7E6-4F7B-A9AE-ECAADBF4994A">
+     <RemoveFolder Id="RemoveMenuFolder" On="uninstall" />
+     <RegistryValue Root="HKLM" Key="Software\MinamotoDev\Board" Name="Installed" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+   </Directory>
+  </StandardDirectory>
+  <Feature Id="Board" Title="MinamotoBoard" Level="1">
+   <ComponentRef Id="MainExecutable" /><ComponentRef Id="ApplicationConfig" />
+   <ComponentRef Id="PluginApi" /><ComponentRef Id="Instructions" />
+   <ComponentRef Id="PluginInstructions" /><ComponentRef Id="MenuFolder" />
+  </Feature>
+ </Package>
+</Wix>

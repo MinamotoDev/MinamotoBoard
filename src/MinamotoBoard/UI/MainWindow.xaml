@@ -39,12 +39,13 @@
  <Grid>
   <!-- Keep strokes in DIPs; resizing clips/reveals ink without rescaling coordinates. -->
   <InkCanvas x:Name="Board" Background="#236B45" ClipToBounds="True" Focusable="True" />
+  <Grid x:Name="PluginOverlay" ClipToBounds="True" />
   <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20" Padding="14,9" CornerRadius="8" Background="#1A5135" IsHitTestVisible="False">
    <StackPanel><TextBlock Text="MinamotoBoard" Foreground="#FFFFFF" FontSize="18" FontWeight="SemiBold" />
     <TextBlock x:Name="ToolStatus" Text="白色画笔 · 4 DIP" Foreground="#D7E8DD" FontSize="13" Margin="0,3,0,0" /></StackPanel>
   </Border>
   <Border x:Name="Toolbar" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" MaxWidth="1120" Margin="16" Padding="9" Background="#FCFDFB" BorderBrush="#DAE3DD" BorderThickness="1" CornerRadius="14">
-   <WrapPanel HorizontalAlignment="Center">
+   <WrapPanel x:Name="ToolsPanel" HorizontalAlignment="Center">
     <RadioButton x:Name="PenButton" Content="画笔" GroupName="Tool" Checked="OnPenSelected" AutomationProperties.Name="画笔" />
     <RadioButton x:Name="EraserButton" Content="橡皮" GroupName="Tool" Checked="OnEraserSelected" AutomationProperties.Name="橡皮擦" />
     <RadioButton x:Name="WhiteButton" GroupName="Color" Tag="#FFFFFF" Checked="OnColorSelected" ToolTip="白色" AutomationProperties.Name="白色"><Ellipse Width="24" Height="24" Fill="#FFFFFF" Stroke="#829087" /></RadioButton>
@@ -55,6 +56,7 @@
     <StackPanel Orientation="Horizontal"><TextBlock Text="笔宽" VerticalAlignment="Center" Foreground="#355341" Margin="8,0,2,0" /><ComboBox x:Name="PenWidth" SelectionChanged="OnPenWidthChanged" AutomationProperties.Name="画笔粗细" /></StackPanel>
     <StackPanel Orientation="Horizontal"><TextBlock Text="橡皮" VerticalAlignment="Center" Foreground="#355341" Margin="8,0,2,0" /><ComboBox x:Name="EraserWidth" SelectionChanged="OnEraserWidthChanged" AutomationProperties.Name="橡皮擦大小" /></StackPanel>
     <Button Content="隐藏" Click="OnHideToolbar" ToolTip="隐藏工具栏 (Ctrl+Tab)" />
+    <Button x:Name="PluginsButton" Content="Plugins" Click="OnPlugins" />
     <Button x:Name="FullscreenButton" Content="退出全屏" Click="OnToggleFullscreen" ToolTip="F11 切换全屏；Esc 退出全屏" />
     <Button Content="关闭" Click="OnClose" />
    </WrapPanel>

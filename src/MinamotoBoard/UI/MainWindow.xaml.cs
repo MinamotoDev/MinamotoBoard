@@ -1,4 +1,7 @@
+using System;
 using System.ComponentModel;
+using System.Threading.Tasks;
+using MinamotoBoard.Plugins;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -13,9 +16,15 @@ namespace MinamotoBoard.UI
         private bool fullscreen;
         private WindowState previousState;
         private string colorName = "白色";
+        private PluginManager plugins;
+        private readonly bool safeMode;
+        private bool pluginsStarted;
 
-        public MainWindow()
+        public MainWindow() : this(false) { }
+
+        public MainWindow(bool safeMode)
         {
+            this.safeMode = safeMode;
             InitializeComponent();
             tools = new InkTools(Board);
             PenWidth.ItemsSource = InkTools.PenWidths;
@@ -25,6 +34,26 @@ namespace MinamotoBoard.UI
             WhiteButton.IsChecked = true;
             PenButton.IsChecked = true;
             SetFullscreen(true);
+            ContentRendered += OnFirstRendered;
+            Closed += delegate { if (plugins != null) plugins.Dispose(); };
+        }
+
+        private async void OnFirstRendered(object sender, EventArgs e)
+        {
+            if (pluginsStarted) return;
+            pluginsStarted = true;
+            PluginsButton.IsEnabled = false;
+            plugins = PluginManager.CreateDefault();
+            await Task.Run(() => plugins.Discover());
+            if (!IsLoaded) { plugins.Dispose(); return; }
+            plugins.LoadOnUiThread(this, Board, ToolsPanel, PluginOverlay, safeMode);
+            PluginsButton.IsEnabled = true;
+            PluginsButton.ToolTip = safeMode ? "安全模式：未加载插件" : "管理插件（修改后重启生效）";
+        }
+
+        private void OnPlugins(object sender, RoutedEventArgs e)
+        {
+            if (plugins != null) new PluginsWindow(plugins, safeMode) { Owner = this }.ShowDialog();
         }
 
         private void OnPenSelected(object sender, RoutedEventArgs e)

@@ -24,7 +24,12 @@ namespace MinamotoBoard.Tests
                 Run("Invalid widths leave settings intact", InvalidWidths);
                 Run("Native point erasure splits a stroke and preserves its style", PointErasure);
                 Run("Window starts fullscreen with green board and valid controls", WindowDefaults);
-                Console.WriteLine("PASS: {0}/6 scenarios", passed);
+                Run("Plugin changes UI and adds working feature; shutdown cleans up", PluginTests.LoadAndCleanup);
+                Run("Disabled plugins and safe mode do not execute plugin code", PluginTests.DisabledAndSafeMode);
+                Run("Broken plugin and invalid DLL do not prevent healthy loading", PluginTests.FailureIsolation);
+                Run("Duplicate plugin IDs are rejected without duplicate UI", PluginTests.DuplicateIds);
+                Run("Managed toolbar callback exceptions are contained", PluginTests.CallbackFailure);
+                Console.WriteLine("PASS: {0}/11 scenarios", passed);
                 return 0;
             }
             catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
