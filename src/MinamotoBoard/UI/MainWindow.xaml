@@ -55,6 +55,13 @@
     <RadioButton GroupName="Color" Tag="#000000" Checked="OnColorSelected" ToolTip="黑色" AutomationProperties.Name="黑色"><Ellipse Width="24" Height="24" Fill="#000000" /></RadioButton>
     <StackPanel Orientation="Horizontal"><TextBlock Text="笔宽" VerticalAlignment="Center" Foreground="#355341" Margin="8,0,2,0" /><ComboBox x:Name="PenWidth" SelectionChanged="OnPenWidthChanged" AutomationProperties.Name="画笔粗细" /></StackPanel>
     <StackPanel Orientation="Horizontal"><TextBlock Text="橡皮" VerticalAlignment="Center" Foreground="#355341" Margin="8,0,2,0" /><ComboBox x:Name="EraserWidth" SelectionChanged="OnEraserWidthChanged" AutomationProperties.Name="橡皮擦大小" /></StackPanel>
+    <StackPanel Orientation="Horizontal">
+     <Button x:Name="PreviousPageButton" Content="上一页" Click="OnPreviousPage" AutomationProperties.Name="上一页" />
+     <TextBlock x:Name="PageStatus" Text="1 / 1" MinWidth="70" TextAlignment="Center" VerticalAlignment="Center" Foreground="#355341" FontSize="16" AutomationProperties.Name="页码" />
+     <Button x:Name="NextPageButton" Content="下一页" Click="OnNextPage" AutomationProperties.Name="下一页" />
+     <Button x:Name="AddPageButton" Content="加页" Click="OnAddPage" ToolTip="在当前页后新增空白页，保留原页面" />
+     <Button Content="清屏" Click="OnClearPage" ToolTip="仅清空当前页的笔迹，操作前会确认" />
+    </StackPanel>
     <Button Content="隐藏" Click="OnHideToolbar" ToolTip="隐藏工具栏 (Ctrl+Tab)" />
     <Button x:Name="PluginsButton" Content="Plugins" Click="OnPlugins" Visibility="Collapsed" />
     <Button x:Name="FullscreenButton" Content="退出全屏" Click="OnToggleFullscreen" ToolTip="F11 切换全屏；Esc 退出全屏" />

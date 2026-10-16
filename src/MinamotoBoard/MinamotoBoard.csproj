@@ -34,6 +34,7 @@
     <Compile Include="App.xaml.cs"><DependentUpon>App.xaml</DependentUpon></Compile>
     <Compile Include="UI\MainWindow.xaml.cs"><DependentUpon>MainWindow.xaml</DependentUpon></Compile>
     <Compile Include="Ink\InkTools.cs" />
+    <Compile Include="Models\BoardDocument.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Plugins\PluginHost.cs" Condition="'$(NoPlugins)' != 'true'" />
     <Compile Include="Plugins\PluginManager.cs" Condition="'$(NoPlugins)' != 'true'" />

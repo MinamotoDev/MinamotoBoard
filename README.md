@@ -1,6 +1,8 @@
 # MinamotoBoard
 
-面向学校触屏电脑的轻量 WPF 绿板。当前完成基础白板 MVP，并按追加需求提供 **Plugins 和 MSI 安装包（0.2.0）**。
+面向学校触屏电脑的轻量 WPF 绿板。当前本地版本为 **0.3.0**，新增加页、翻页、页码和清屏；保留 Plugins 和无插件独立版。
+
+**0.3.0 尚未发布 GitHub**。[本地版本说明](docs/releases/0.3.0.md)
 
 0.2.0 合入已选定的 v5 铅笔图标，用于 EXE、窗口、开始菜单快捷方式和卸载列表。
 本次按要求只构建打包，没有运行测试或执行安装。
@@ -18,10 +20,10 @@ MSI：`artifacts\installer\MinamotoBoard.msi`，默认安装到 `C:\Program File
 
 ## 运行
 
-当前构建的程序：`artifacts\release-0.2.0\app\MinamotoBoard.exe`。双击即可运行。
+当前构建的程序：`artifacts\release-0.3.0\app\MinamotoBoard.exe`。双击即可运行。
 复制到另一台电脑时，请同时复制同目录的 `MinamotoBoard.exe.config` 与 `MinamotoBoard.PluginApi.dll`。
 
-无插件独立版位于 `artifacts\release-0.2.0\MinamotoBoard-no-plugins.exe`，可只复制这一份 EXE。
+无插件独立版位于 `artifacts\release-0.3.0\MinamotoBoard-no-plugins.exe`，可只复制这一份 EXE。
 生成两份 Release 资产可运行 `./scripts/build-release.ps1`，该脚本不运行测试。
 
 常规本地构建的程序位于 `src\MinamotoBoard\bin\Release\MinamotoBoard.exe`。
@@ -29,7 +31,7 @@ MSI：`artifacts\installer\MinamotoBoard.msi`，默认安装到 `C:\Program File
 
 - 目标：Windows 10 22H2 **x64**，.NET Framework **4.8 或更高版本**。
 - 无需联网、账号、Microsoft Store、浏览器组件或管理员权限运行。
-- 第一阶段**没有保存功能**；退出或程序异常终止后笔迹会丢失。存在笔迹时关闭会提示确认。
+- 当前**没有保存功能**；退出或程序异常终止后所有页面的笔迹会丢失。任一页面存在笔迹时关闭会提示确认。
 - 当前不是已通过学校实机验收的正式发行版。
 
 ## 使用
@@ -37,6 +39,8 @@ MSI：`artifacts\installer\MinamotoBoard.msi`，默认安装到 `C:\Program File
 - 启动默认全屏，绿板 `#236B45`，白色圆头画笔，4 DIP。
 - 底部选择画笔、橡皮、五种笔色；笔宽为 2 / 4 / 6 / 10 / 16 DIP。
 - 橡皮为原生局部擦除，直径可选 16 / 32 / 64 DIP。
+- “加页”在当前页后插入空白页；“上一页 / 下一页”切换页面，页码显示当前位置，最多 100 页。
+- “清屏”先确认，再仅删除当前页笔迹，保留背景和其他页；目前不支持撤销清屏。
 - 选颜色会切回画笔；切换工具保留已选颜色与宽度。
 - 工具栏可以隐藏，底部的“显示工具栏”按钮可恢复。
 - `F11` 切换全屏，`Esc` 退出全屏，`Ctrl+Tab` 隐藏/显示工具栏。
@@ -48,7 +52,7 @@ MSI：`artifacts\installer\MinamotoBoard.msi`，默认安装到 `C:\Program File
 旧显卡有显示问题时可显式启动进程级软件渲染，不修改系统配置：
 
 ```powershell
-& .\artifacts\release-0.2.0\app\MinamotoBoard.exe --software-rendering
+& .\artifacts\release-0.3.0\app\MinamotoBoard.exe --software-rendering
 ```
 
 ## 技术选型
@@ -126,6 +130,7 @@ src/MinamotoBoard/
   UI/MainWindow.xaml           原生 WPF 工具栏与画布
   UI/MainWindow.xaml.cs        工具选择、全屏与关闭确认
   Ink/InkTools.cs              原生笔迹工具配置
+  Models/BoardDocument.cs      页面、笔迹集合和页数上限
   Plugins/                     插件发现、生命周期与 UI 扩展
 src/MinamotoBoard.PluginApi/    独立 API 程序集
 samples/BoardTheme.Plugin/      可编译的改 UI / 新工具示例
@@ -135,11 +140,11 @@ scripts/check-runtime.ps1      只读先决条件检查
 docs/TEST-REPORT.md             当前测试证据和待验项目
 ```
 
-本次仓库原为空，仅创建新文件。Models、Services、Persistence 将在对应阶段有实际需求时引入。
+项目从空仓库创建。页面模型已经引入；Services、Persistence 将在有实际需求时再增加。
 内置功能没有后台服务、网络请求、遥测、动画循环、同步书写磁盘 I/O 或背景图片。第三方插件行为由其实现决定。
 
 ## 下一阶段
 
-第二阶段优先实现增量撤销/重做，覆盖原生擦除产生的拆分笔迹；随后增加清空、多页、独立历史和数量/内存上限。
+后续优先实现增量撤销/重做，覆盖书写、擦除和清屏；再考虑页面删除、独立历史及笔迹内存管理。
 保存、加载、PNG 导出与恢复属于第三阶段，本次未实现。
 真实触屏、多 DPI、老旧电脑和大量笔迹的验证清单见测试报告。

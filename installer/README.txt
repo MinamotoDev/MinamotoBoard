@@ -1,4 +1,4 @@
-MinamotoBoard 0.2.0
+MinamotoBoard 0.3.0
 
 默认安装位置：C:\Program Files\MinamotoDev\Board
 从开始菜单打开 MinamotoBoard，或双击此目录中的 MinamotoBoard.exe。
@@ -6,6 +6,9 @@ MinamotoBoard 0.2.0
 目标环境：Windows 10 22H2 x64，.NET Framework 4.8 或更高版本。
 
 默认绿板和白笔，底部可以换色、改笔宽、切换橡皮。
+加页：在当前页后插入空白页，之前页面的笔迹保留。
+上一页/下一页：切换页面；中间显示当前页码和总页数，最多 100 页。
+清屏：确认后仅清空当前页笔迹，不改变背景或其他页面；目前不能撤销。
 F11 切换全屏，Esc 退出全屏，Ctrl+Tab 隐藏/显示工具栏。
 当前仍为基础白板预览版，没有保存功能，退出后笔迹会丢失。
 

@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using MinamotoBoard.Ink;
+using MinamotoBoard.Models;
 
 namespace MinamotoBoard.UI
 {
@@ -18,6 +19,7 @@ namespace MinamotoBoard.UI
         private bool fullscreen;
         private WindowState previousState;
         private string colorName = "白色";
+        private readonly BoardDocument document;
 #if !NO_PLUGINS
         private PluginManager plugins;
         private readonly bool safeMode;
@@ -32,6 +34,8 @@ namespace MinamotoBoard.UI
             this.safeMode = safeMode;
 #endif
             InitializeComponent();
+            document = new BoardDocument(Board.Strokes, Board.Background);
+            UpdatePageControls();
             tools = new InkTools(Board);
             PenWidth.ItemsSource = InkTools.PenWidths;
             EraserWidth.ItemsSource = InkTools.EraserWidths;
@@ -114,6 +118,69 @@ namespace MinamotoBoard.UI
                 : string.Format("橡皮擦 · {0} DIP", Board.EraserShape.Width);
         }
 
+        private bool IsWriting()
+        {
+            return Board.IsStylusCaptured || Board.IsMouseCaptured || Board.AreAnyTouchesCaptured;
+        }
+
+        private void CaptureCurrentPage()
+        {
+            // Plugins may replace Canvas.Strokes rather than modifying it in place.
+            document.CurrentPage.Strokes = Board.Strokes;
+            document.CurrentPage.Background = Board.Background;
+        }
+
+        private void ShowCurrentPage()
+        {
+            Board.Strokes = document.CurrentPage.Strokes;
+            Board.Background = document.CurrentPage.Background;
+            UpdatePageControls();
+            Board.Focus();
+        }
+
+        private void UpdatePageControls()
+        {
+            PageStatus.Text = string.Format("{0} / {1}", document.CurrentIndex + 1, document.Count);
+            PreviousPageButton.IsEnabled = document.CanMovePrevious;
+            NextPageButton.IsEnabled = document.CanMoveNext;
+            AddPageButton.IsEnabled = document.CanAddPage;
+            AddPageButton.ToolTip = document.CanAddPage
+                ? "在当前页后新增空白页，保留原页面"
+                : "已达到 100 页上限";
+        }
+
+        private void OnAddPage(object sender, RoutedEventArgs e)
+        {
+            if (IsWriting()) return;
+            CaptureCurrentPage();
+            if (document.AddPage()) ShowCurrentPage();
+        }
+
+        private void OnPreviousPage(object sender, RoutedEventArgs e)
+        {
+            if (IsWriting()) return;
+            CaptureCurrentPage();
+            if (document.MovePrevious()) ShowCurrentPage();
+        }
+
+        private void OnNextPage(object sender, RoutedEventArgs e)
+        {
+            if (IsWriting()) return;
+            CaptureCurrentPage();
+            if (document.MoveNext()) ShowCurrentPage();
+        }
+
+        private void OnClearPage(object sender, RoutedEventArgs e)
+        {
+            if (IsWriting() || Board.Strokes.Count == 0) return;
+            if (MessageBox.Show(this,
+                string.Format("清空第 {0} 页的全部笔迹吗？\n目前不支持撤销。其他页面和背景颜色不会改变。", document.CurrentIndex + 1),
+                "清空当前页", MessageBoxButton.OKCancel, MessageBoxImage.Warning,
+                MessageBoxResult.Cancel) != MessageBoxResult.OK) return;
+            Board.Strokes.Clear();
+            Board.Focus();
+        }
+
         private void OnHideToolbar(object sender, RoutedEventArgs e) { SetToolbarVisible(false); }
         private void OnShowToolbar(object sender, RoutedEventArgs e) { SetToolbarVisible(true); }
 
@@ -162,9 +229,10 @@ namespace MinamotoBoard.UI
 
         private void OnClosing(object sender, CancelEventArgs e)
         {
-            if (Board.Strokes.Count == 0) return;
+            CaptureCurrentPage();
+            if (!document.HasInk) return;
             e.Cancel = MessageBox.Show(this,
-                "当前是第一阶段预览版，尚未提供保存功能。关闭后，本次笔迹将丢失。\n确定关闭吗？",
+                "当前预览版尚未提供保存功能。关闭后，所有页面的笔迹都将丢失。\n确定关闭吗？",
                 "关闭绿板", MessageBoxButton.OKCancel, MessageBoxImage.Warning,
                 MessageBoxResult.Cancel) != MessageBoxResult.OK;
         }
