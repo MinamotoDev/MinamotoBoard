@@ -1,9 +1,10 @@
 # Build both official release assets. No tests or application launches are performed.
+param([string]$OutputDirectory = 'artifacts\release-0.3.1')
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path -Parent $PSScriptRoot
 $taskMsbuild = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe'
 $taskProject = Join-Path $taskRoot 'src\MinamotoBoard\MinamotoBoard.csproj'
-$taskRelease = Join-Path $taskRoot 'artifacts\release-0.3.1'
+$taskRelease = if ([IO.Path]::IsPathRooted($OutputDirectory)) { [IO.Path]::GetFullPath($OutputDirectory) } else { [IO.Path]::GetFullPath((Join-Path $taskRoot $OutputDirectory)) }
 $taskApp = Join-Path $taskRelease 'app'
 $taskStandalone = Join-Path $taskRelease 'no-plugins'
 & $taskMsbuild $taskProject /p:Configuration=Release /p:Platform=x64 "/p:OutputPath=$taskApp\" /nologo /verbosity:minimal

@@ -36,18 +36,20 @@
    <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="BoardVerifyReadyDlg" Order="3" />
    <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="BoardVerifyReadyDlg" Order="3" />
    <Publish Dialog="BoardVerifyReadyDlg" Control="Back" Event="NewDialog" Value="InstallDirDlg" Order="1" Condition="NOT Installed AND NOT WIX_UPGRADE_DETECTED" />
-   <Publish Dialog="BoardVerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2" Condition="Installed OR WIX_UPGRADE_DETECTED" />
+   <Publish Dialog="BoardVerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2" Condition="Installed AND NOT BOARD_DIRECT_REMOVE" />
    <InstallUISequence>
     <Show Dialog="override WelcomeDlg" Before="ProgressDlg" Condition="NOT Installed AND NOT WIX_UPGRADE_DETECTED" />
-    <Show Dialog="override MaintenanceWelcomeDlg" Before="ProgressDlg" Condition="(Installed OR WIX_UPGRADE_DETECTED) AND NOT RESUME AND NOT Preselected AND NOT (REMOVE~=&quot;ALL&quot;)" />
+    <Show Dialog="override MaintenanceWelcomeDlg" Before="ProgressDlg" Condition="Installed AND NOT RESUME AND NOT Preselected AND NOT (REMOVE~=&quot;ALL&quot;)" />
     <Show Dialog="override ResumeDlg" Before="ProgressDlg" Condition="Installed AND (RESUME OR Preselected) AND NOT (REMOVE~=&quot;ALL&quot;)" />
-    <Show Dialog="BoardVerifyReadyDlg" Before="ProgressDlg" Condition="BOARD_DIRECT_REMOVE" />
+    <Show Dialog="BoardVerifyReadyDlg" Before="ProgressDlg" Condition="BOARD_DIRECT_REMOVE OR BOARD_IS_UPDATE" />
     <Show Dialog="override UserExit" OnExit="cancel" Condition="NOT BOARD_REMOVE_RELATED" />
     <Custom Action="DeleteBoardUserData" After="ExecuteAction" Condition="Installed AND REMOVE~=&quot;ALL&quot; AND BOARD_DELETE_CONFIG=&quot;1&quot; AND NOT UPGRADINGPRODUCTCODE" />
    </InstallUISequence>
   </UI>
   <SetProperty Id="BOARD_DIRECT_REMOVE" Value="1" After="CostFinalize" Sequence="ui" Condition="Installed AND REMOVE~=&quot;ALL&quot;" />
   <SetProperty Id="WixUI_InstallMode" Value="Remove" After="SetBOARD_DIRECT_REMOVE" Sequence="ui" Condition="BOARD_DIRECT_REMOVE" />
+  <SetProperty Id="BOARD_IS_UPDATE" Value="1" After="CostFinalize" Sequence="ui" Condition="NOT Installed AND WIX_UPGRADE_DETECTED AND NOT (REMOVE~=&quot;ALL&quot;)" />
+  <SetProperty Id="WixUI_InstallMode" Action="SetBoardUpdateMode" Value="Update" After="SetBOARD_IS_UPDATE" Sequence="ui" Condition="BOARD_IS_UPDATE" />
   <UIRef Id="WixUI_Common" />
  </Fragment>
 </Wix>

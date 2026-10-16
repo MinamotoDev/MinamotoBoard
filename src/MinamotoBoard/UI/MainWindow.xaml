@@ -40,10 +40,10 @@
   <!-- Keep strokes in DIPs; resizing clips/reveals ink without rescaling coordinates. -->
   <InkCanvas x:Name="Board" Background="#236B45" ClipToBounds="True" Focusable="True" />
   <Grid x:Name="PluginOverlay" ClipToBounds="True" />
-  <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20" Padding="14,9" CornerRadius="8" Background="#1A5135" IsHitTestVisible="False">
-   <StackPanel><TextBlock Text="MinamotoBoard" Foreground="#FFFFFF" FontSize="18" FontWeight="SemiBold" />
-    <TextBlock x:Name="ToolStatus" Text="白色画笔 · 4 DIP" Foreground="#D7E8DD" FontSize="13" Margin="0,3,0,0" /></StackPanel>
-  </Border>
+  <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="12">
+   <Button Content="—" Click="OnMinimize" ToolTip="最小化" AutomationProperties.Name="最小化" />
+   <Button x:Name="FullscreenButton" Content="退出全屏" Click="OnToggleFullscreen" ToolTip="F11" AutomationProperties.Name="切换全屏" />
+  </StackPanel>
   <Border x:Name="Toolbar" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="16" Padding="9" Background="#FCFDFB" BorderBrush="#DAE3DD" BorderThickness="1" CornerRadius="14">
    <DockPanel>
     <Button x:Name="ToolbarLeft" Content="‹" DockPanel.Dock="Left" Visibility="Collapsed" Click="OnToolbarLeft" ToolTip="向左滚动工具栏" AutomationProperties.Name="向左滚动工具栏" />
@@ -68,7 +68,7 @@
     </StackPanel>
     <Button Content="隐藏" Click="OnHideToolbar" ToolTip="隐藏工具栏 (Ctrl+Tab)" />
     <Button x:Name="PluginsButton" Content="Plugins" Click="OnPlugins" Visibility="Collapsed" />
-    <Button x:Name="FullscreenButton" Content="退出全屏" Click="OnToggleFullscreen" ToolTip="F11 切换全屏；Esc 退出全屏" />
+    <Button Content="设置" Click="OnSettings" />
     <Button Content="关闭" Click="OnClose" />
    </StackPanel>
     </ScrollViewer>

@@ -18,7 +18,6 @@ namespace MinamotoBoard.UI
         private InkTools tools;
         private bool fullscreen;
         private WindowState previousState;
-        private string colorName = "白色";
         private readonly BoardDocument document;
         private double toolbarScale = 1;
 #if !NO_PLUGINS
@@ -78,14 +77,12 @@ namespace MinamotoBoard.UI
         {
             if (tools == null) return;
             tools.UsePen();
-            UpdateStatus();
         }
 
         private void OnEraserSelected(object sender, RoutedEventArgs e)
         {
             if (tools == null) return;
             tools.UseEraser();
-            UpdateStatus();
         }
 
         private void OnColorSelected(object sender, RoutedEventArgs e)
@@ -93,30 +90,19 @@ namespace MinamotoBoard.UI
             if (tools == null) return;
             RadioButton button = (RadioButton)sender;
             tools.SetColor((Color)ColorConverter.ConvertFromString((string)button.Tag));
-            colorName = (string)button.ToolTip;
             PenButton.IsChecked = true;
-            UpdateStatus();
         }
 
         private void OnPenWidthChanged(object sender, SelectionChangedEventArgs e)
         {
             if (tools == null || PenWidth.SelectedItem == null) return;
             tools.SetPenWidth((double)PenWidth.SelectedItem);
-            UpdateStatus();
         }
 
         private void OnEraserWidthChanged(object sender, SelectionChangedEventArgs e)
         {
             if (tools == null || EraserWidth.SelectedItem == null) return;
             tools.SetEraserWidth((double)EraserWidth.SelectedItem);
-            UpdateStatus();
-        }
-
-        private void UpdateStatus()
-        {
-            ToolStatus.Text = Board.EditingMode == InkCanvasEditingMode.Ink
-                ? string.Format("{0}画笔 · {1} DIP", colorName, Board.DefaultDrawingAttributes.Width)
-                : string.Format("橡皮擦 · {0} DIP", Board.EraserShape.Width);
         }
 
         private bool IsWriting()
@@ -226,6 +212,18 @@ namespace MinamotoBoard.UI
         }
 
         private void OnToggleFullscreen(object sender, RoutedEventArgs e) { SetFullscreen(!fullscreen); }
+
+        private void OnMinimize(object sender, RoutedEventArgs e) { WindowState = WindowState.Minimized; }
+
+        private void OnSettings(object sender, RoutedEventArgs e)
+        {
+            new Window
+            {
+                Title = "设置", Owner = this, Width = 600, Height = 420,
+                MinWidth = 360, MinHeight = 240, ShowInTaskbar = false,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            }.ShowDialog();
+        }
 
         private void SetFullscreen(bool enabled)
         {
