@@ -1,9 +1,13 @@
 # MinamotoBoard
 
-面向学校触屏电脑的轻量 WPF 绿板。当前完成基础白板 MVP，并按追加需求提供 **Plugins 和 MSI 安装包（0.2.1）**。
+面向学校触屏电脑的轻量 WPF 绿板。当前完成基础白板 MVP，并按追加需求提供 **Plugins 和 MSI 安装包（0.2.0）**。
 
-0.2.1 合入已选定的 v5 铅笔图标，用于 EXE、窗口、开始菜单快捷方式和卸载列表。
+0.2.0 合入已选定的 v5 铅笔图标，用于 EXE、窗口、开始菜单快捷方式和卸载列表。
 本次按要求只构建打包，没有运行测试或执行安装。
+
+GitHub Release **0.2.0** 提供 `MinamotoBoard.msi`（含插件支持的标准安装版）和 `MinamotoBoard-no-plugins.exe`（独立无插件版）。
+无插件版编译时移除插件加载、管理代码及 API DLL 引用，不需要附加文件；仍需系统自带的 .NET Framework 4.8 或更高版本。
+[发布说明](docs/releases/0.2.0.md)
 
 新增入口：底部 **Plugins** 按钮。插件可新增工具、访问笔迹并修改 WPF 界面；[插件开发与使用说明](docs/PLUGINS.md)。
 插件通常位于 `%USERPROFILE%\Documents\MinamotoDev\Board\Plugins`，使用 Windows 实际文档位置，支持文档重定向。
@@ -14,8 +18,11 @@ MSI：`artifacts\installer\MinamotoBoard.msi`，默认安装到 `C:\Program File
 
 ## 运行
 
-当前构建的程序：`artifacts\release-0.2.1\MinamotoBoard.exe`。双击即可运行。
+当前构建的程序：`artifacts\release-0.2.0\app\MinamotoBoard.exe`。双击即可运行。
 复制到另一台电脑时，请同时复制同目录的 `MinamotoBoard.exe.config` 与 `MinamotoBoard.PluginApi.dll`。
+
+无插件独立版位于 `artifacts\release-0.2.0\MinamotoBoard-no-plugins.exe`，可只复制这一份 EXE。
+生成两份 Release 资产可运行 `./scripts/build-release.ps1`，该脚本不运行测试。
 
 常规本地构建的程序位于 `src\MinamotoBoard\bin\Release\MinamotoBoard.exe`。
 初版试写窗口保留；新版本构建使用独立目录，避免覆盖运行中的 EXE。
@@ -41,7 +48,7 @@ MSI：`artifacts\installer\MinamotoBoard.msi`，默认安装到 `C:\Program File
 旧显卡有显示问题时可显式启动进程级软件渲染，不修改系统配置：
 
 ```powershell
-& .\artifacts\release-0.2.1\MinamotoBoard.exe --software-rendering
+& .\artifacts\release-0.2.0\app\MinamotoBoard.exe --software-rendering
 ```
 
 ## 技术选型

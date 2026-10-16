@@ -1,4 +1,4 @@
-MinamotoBoard 0.2.1
+MinamotoBoard 0.2.0
 
 默认安装位置：C:\Program Files\MinamotoDev\Board
 从开始菜单打开 MinamotoBoard，或双击此目录中的 MinamotoBoard.exe。

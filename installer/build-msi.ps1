@@ -1,5 +1,5 @@
 param(
-    [string]$AppSource = 'artifacts\release-0.2.1',
+    [string]$AppSource = 'artifacts\release-0.2.0\app',
     [string]$WixDll = 'artifacts\tools\wix5\tools\net6.0\any\wix.dll'
 )
 $ErrorActionPreference = 'Stop'
