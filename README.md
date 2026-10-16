@@ -78,6 +78,6 @@ docs/TEST-REPORT.md             当前测试证据和待验项目
 
 Copyright (C) 2026 MinamotoDev
 
-除下述第三方文件外，MinamotoBoard 项目代码采用 **GNU General Public License v3.0 only**（`GPL-3.0-only`）。你可以依据 GNU 通用公共许可证第 3 版的条款重新分发和修改本项目。
+除下述第三方文件外，MinamotoBoard 项目代码采用 **GNU General Public License v3.0 only**（`GPL-3.0-only`）。可以依据 GNU 通用公共许可证第 3 版的条款重新分发和修改本项目。
 
 本程序不提供任何担保，包括适销性或特定用途适用性的默示担保。完整条款见 [LICENSE](LICENSE)。
