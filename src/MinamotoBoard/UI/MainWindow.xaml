@@ -5,6 +5,21 @@
  WindowStartupLocation="CenterScreen" Background="#236B45" Icon="/Assets/MinamotoBoard.ico"
  PreviewKeyDown="OnPreviewKeyDown" Closing="OnClosing">
  <Window.Resources>
+  <Style x:Key="WindowIconButton" TargetType="Button">
+   <Setter Property="Width" Value="50" /><Setter Property="Height" Value="50" />
+   <Setter Property="Margin" Value="3" /><Setter Property="Background" Value="Transparent" />
+   <Setter Property="Foreground" Value="White" /><Setter Property="BorderThickness" Value="0" />
+   <Setter Property="FontFamily" Value="Segoe MDL2 Assets" /><Setter Property="FontSize" Value="18" />
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+    <Border Background="{TemplateBinding Background}">
+     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+    </Border>
+    <ControlTemplate.Triggers>
+     <Trigger Property="IsMouseOver" Value="True"><Setter Property="Opacity" Value="0.75" /></Trigger>
+     <Trigger Property="IsPressed" Value="True"><Setter Property="Opacity" Value="0.5" /></Trigger>
+    </ControlTemplate.Triggers>
+   </ControlTemplate></Setter.Value></Setter>
+  </Style>
   <Style TargetType="Button">
    <Setter Property="MinWidth" Value="52" /><Setter Property="MinHeight" Value="50" />
    <Setter Property="Margin" Value="3" /><Setter Property="Padding" Value="12,6" />
@@ -41,8 +56,8 @@
   <InkCanvas x:Name="Board" Background="#236B45" ClipToBounds="True" Focusable="True" />
   <Grid x:Name="PluginOverlay" ClipToBounds="True" />
   <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="12">
-   <Button Content="—" Click="OnMinimize" ToolTip="最小化" AutomationProperties.Name="最小化" />
-   <Button x:Name="FullscreenButton" Content="退出全屏" Click="OnToggleFullscreen" ToolTip="F11" AutomationProperties.Name="切换全屏" />
+   <Button Style="{StaticResource WindowIconButton}" Content="&#xE921;" Click="OnMinimize" ToolTip="最小化" AutomationProperties.Name="最小化" />
+   <Button x:Name="FullscreenButton" Style="{StaticResource WindowIconButton}" Content="&#xE73F;" Click="OnToggleFullscreen" ToolTip="退出全屏" AutomationProperties.Name="退出全屏" />
   </StackPanel>
   <Border x:Name="Toolbar" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="16" Padding="9" Background="#FCFDFB" BorderBrush="#DAE3DD" BorderThickness="1" CornerRadius="14">
    <DockPanel>
@@ -67,8 +82,7 @@
      <Button Content="清屏" Click="OnClearPage" ToolTip="清空当前页" />
     </StackPanel>
     <Button Content="隐藏" Click="OnHideToolbar" ToolTip="隐藏工具栏 (Ctrl+Tab)" />
-    <Button x:Name="PluginsButton" Content="Plugins" Click="OnPlugins" Visibility="Collapsed" />
-    <Button Content="设置" Click="OnSettings" />
+    <Button x:Name="SettingsButton" Content="设置" Click="OnSettings" />
     <Button Content="关闭" Click="OnClose" />
    </StackPanel>
     </ScrollViewer>

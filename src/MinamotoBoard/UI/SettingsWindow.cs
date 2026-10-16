@@ -9,18 +9,18 @@ using MinamotoBoard.Plugins;
 
 namespace MinamotoBoard.UI
 {
-    public sealed class PluginsWindow : Window
+    public sealed class SettingsWindow : Window
     {
-        public PluginsWindow(PluginManager manager, bool safeMode)
+        public SettingsWindow(PluginManager manager, bool safeMode)
         {
-            Title = "MinamotoBoard · Plugins"; Width = 720; Height = 540;
+            Title = "设置"; Width = 720; Height = 540;
             MinWidth = 480; MinHeight = 360; WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            DockPanel layout = new DockPanel { Margin = new Thickness(20) };
-            Content = layout;
-            TextBlock heading = new TextBlock { Text = "Plugins" + (safeMode ? " · 安全模式" : ""), FontSize = 24 };
-            DockPanel.SetDock(heading, Dock.Top); layout.Children.Add(heading);
+            DockPanel layout = new DockPanel { Margin = new Thickness(12) };
+            TabControl sections = new TabControl { Margin = new Thickness(12) };
+            sections.Items.Add(new TabItem { Header = "插件", Content = layout });
+            Content = sections;
             TextBlock info = new TextBlock { Text = manager.PluginDirectory +
-                "\n仅使用可信插件，重启后生效。",
+                "\n仅使用可信插件，重启后生效。" + (safeMode ? "\n安全模式" : ""),
                 TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 12, 0, 12) };
             DockPanel.SetDock(info, Dock.Top); layout.Children.Add(info);
             StackPanel buttons = new StackPanel { Orientation = Orientation.Horizontal };

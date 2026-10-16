@@ -38,7 +38,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Plugins\PluginHost.cs" Condition="'$(NoPlugins)' != 'true'" />
     <Compile Include="Plugins\PluginManager.cs" Condition="'$(NoPlugins)' != 'true'" />
-    <Compile Include="UI\PluginsWindow.cs" Condition="'$(NoPlugins)' != 'true'" />
+    <Compile Include="UI\SettingsWindow.cs" Condition="'$(NoPlugins)' != 'true'" />
     <ProjectReference Include="..\MinamotoBoard.PluginApi\MinamotoBoard.PluginApi.csproj" Condition="'$(NoPlugins)' != 'true'">
       <Project>{BF65C97B-734E-434A-915A-0F167F46DE18}</Project><Name>MinamotoBoard.PluginApi</Name>
     </ProjectReference>

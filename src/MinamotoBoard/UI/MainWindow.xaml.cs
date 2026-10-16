@@ -45,7 +45,7 @@ namespace MinamotoBoard.UI
             PenButton.IsChecked = true;
             SetFullscreen(true);
 #if !NO_PLUGINS
-            PluginsButton.Visibility = Visibility.Visible;
+            SettingsButton.IsEnabled = false;
             ContentRendered += OnFirstRendered;
             Closed += delegate { if (plugins != null) plugins.Dispose(); };
 #endif
@@ -56,22 +56,13 @@ namespace MinamotoBoard.UI
         {
             if (pluginsStarted) return;
             pluginsStarted = true;
-            PluginsButton.IsEnabled = false;
             plugins = PluginManager.CreateDefault();
             await Task.Run(() => plugins.Discover());
             if (!IsLoaded) { plugins.Dispose(); return; }
             plugins.LoadOnUiThread(this, Board, ToolsPanel, PluginOverlay, safeMode);
-            PluginsButton.IsEnabled = true;
-            PluginsButton.ToolTip = safeMode ? "安全模式" : "管理插件";
+            SettingsButton.IsEnabled = true;
         }
 #endif
-
-        private void OnPlugins(object sender, RoutedEventArgs e)
-        {
-#if !NO_PLUGINS
-            if (plugins != null) new PluginsWindow(plugins, safeMode) { Owner = this }.ShowDialog();
-#endif
-        }
 
         private void OnPenSelected(object sender, RoutedEventArgs e)
         {
@@ -217,12 +208,17 @@ namespace MinamotoBoard.UI
 
         private void OnSettings(object sender, RoutedEventArgs e)
         {
+#if !NO_PLUGINS
+            if (plugins == null) return;
+            new SettingsWindow(plugins, safeMode) { Owner = this }.ShowDialog();
+#else
             new Window
             {
                 Title = "设置", Owner = this, Width = 600, Height = 420,
                 MinWidth = 360, MinHeight = 240, ShowInTaskbar = false,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
             }.ShowDialog();
+#endif
         }
 
         private void SetFullscreen(bool enabled)
@@ -243,7 +239,10 @@ namespace MinamotoBoard.UI
                 WindowState = previousState;
             }
             fullscreen = enabled;
-            FullscreenButton.Content = enabled ? "退出全屏" : "进入全屏";
+            FullscreenButton.Content = enabled ? "\uE73F" : "\uE740";
+            string label = enabled ? "退出全屏" : "全屏";
+            FullscreenButton.ToolTip = label;
+            System.Windows.Automation.AutomationProperties.SetName(FullscreenButton, label);
         }
 
         private void OnPreviewKeyDown(object sender, KeyEventArgs e)

@@ -10,7 +10,7 @@ F11：切换全屏；Esc：退出全屏；Ctrl+Tab：显示或隐藏工具栏。
 当前没有保存功能，退出后墨迹将丢失。
 
 Plugins：
-点击 Plugins 管理插件，设置在重启后生效。
+在“设置 → 插件”中管理插件，修改在重启后生效。
 插件目录：Windows 文档\MinamotoDev\Board\Plugins。
 插件启用设置：%LOCALAPPDATA%\MinamotoDev\Board。
 仅使用可信插件。开发说明见 PLUGINS.md。

@@ -2,7 +2,7 @@
 
 ## 安装与管理
 
-在白板底部点击 **Plugins → 打开插件目录**。
+在白板底部点击 **设置 → 插件 → 打开插件目录**。
 真实路径由 Windows 的 `Environment.SpecialFolder.MyDocuments` 解析，默认通常是：
 
 ```text
