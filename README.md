@@ -1,25 +1,8 @@
 # MinamotoBoard
 
-面向学校触屏电脑的轻量 WPF 绿板。当前版本为 **0.3.0**，新增加页、翻页、页码和清屏；保留 Plugins 和无插件独立版。
+面向大屏触屏电脑的轻量白板。
 
 [下载 0.3.0](https://github.com/MinamotoDev/MinamotoBoard/releases/tag/v0.3.0) · [版本说明](docs/releases/0.3.0.md)
-
-0.3.0：MSI 使用标准 Windows Installer 向导，提供安装与卸载确认、修复覆盖安装选项，启动快捷方式独立管理；卸载使用 Windows 设置/控制面板入口，不额外安装卸载程序或创建卸载快捷方式。
-工具栏保持单行并居中，大屏适度收紧，窄屏横向滚动；常用按钮点击区域保持至少 44 DIP。
-
-0.2.0 合入已选定的 v5 铅笔图标，用于 EXE、窗口、开始菜单快捷方式和卸载列表。
-本次按要求只构建打包，没有运行测试或执行安装。
-
-GitHub Release **0.3.0** 提供 `MinamotoBoard.msi`（含插件支持的标准安装版）和 `MinamotoBoard-no-plugins.exe`（独立无插件版）。
-无插件版编译时移除插件加载、管理代码及 API DLL 引用，不需要附加文件；仍需系统自带的 .NET Framework 4.8 或更高版本。
-[发布说明](docs/releases/0.3.0.md)
-
-新增入口：底部 **Plugins** 按钮。插件可新增工具、访问笔迹并修改 WPF 界面；[插件开发与使用说明](docs/PLUGINS.md)。
-插件通常位于 `%USERPROFILE%\Documents\MinamotoDev\Board\Plugins`，使用 Windows 实际文档位置，支持文档重定向。
-`--safe-mode` 启动时不执行插件。
-
-MSI：`artifacts\installer\MinamotoBoard.msi`，默认安装到 `C:\Program Files\MinamotoDev\Board`。
-安装需要管理员授权，运行白板仍使用普通用户。[安装与构建说明](docs/INSTALLER.md)
 
 ## 运行
 
