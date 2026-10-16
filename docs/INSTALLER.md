@@ -4,7 +4,7 @@
 
 生成文件：`artifacts\installer\MinamotoBoard.msi`，版本 **0.3.0**，x64，单文件内嵌 CAB，无在线下载依赖。
 
-当前 0.3.0 为本地预览，新增加页、翻页和清屏，尚未发布 GitHub。两份分发文件位于 `artifacts\release-0.3.0`。
+当前 0.3.0 新增加页、翻页和清屏。[GitHub Release](https://github.com/MinamotoDev/MinamotoBoard/releases/tag/v0.3.0) 提供两份分发文件，本地位于 `artifacts\release-0.3.0`。
 
 本地修复版仍保持 0.3.0：使用 WiX 官方标准对话框库生成的 Windows Installer 原生向导，采用默认布局、图片与简体中文文案，删除自行设计的界面和额外说明。安装需点击确认；已安装时提供标准“修复”/“删除”选项，删除前仍需确认。修复会覆盖程序文件，新包覆盖旧包时使用标准更新确认页。
 使用 Windows Installer 原生注册到设置和控制面板的已安装程序列表，并登记安装位置。
