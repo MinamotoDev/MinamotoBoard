@@ -26,7 +26,7 @@ namespace MinamotoBoard.Plugins
             MainWindow.Dispatcher.VerifyAccess();
             if (disposed) throw new ObjectDisposedException("PluginHost");
             if (action == null) throw new ArgumentNullException("action");
-            Button button = new Button { Content = label, MinWidth = 48, MinHeight = 48, Margin = new Thickness(3) };
+            Button button = new Button { Content = label, MinWidth = 50, MinHeight = 50, Margin = new Thickness(3) };
             RoutedEventHandler handler = delegate
             {
                 try { action(); }

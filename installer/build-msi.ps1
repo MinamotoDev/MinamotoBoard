@@ -16,6 +16,10 @@ foreach ($taskFile in @('MinamotoBoard.exe','MinamotoBoard.exe.config','Minamoto
 }
 $taskOutput = Join-Path $taskRoot 'artifacts\installer'
 New-Item -ItemType Directory -Path $taskOutput -Force | Out-Null
-& dotnet --roll-forward Major $taskWix build (Join-Path $PSScriptRoot 'MinamotoBoard.wxs') -arch x64 -d "AppSource=$taskApp" -d "DocSource=$taskRoot" -intermediateFolder (Join-Path $taskOutput 'obj') -o (Join-Path $taskOutput 'MinamotoBoard.msi')
+$taskMaintenance = Join-Path $taskOutput 'maintenance'
+$taskMsbuild = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe'
+& $taskMsbuild (Join-Path $PSScriptRoot 'MaintenanceBridge\MaintenanceBridge.csproj') /p:Configuration=Release "/p:OutputPath=$taskMaintenance\" /nologo /verbosity:minimal
+if ($LASTEXITCODE -ne 0) { throw 'MSI maintenance bridge build failed.' }
+& dotnet --roll-forward Major $taskWix build (Join-Path $PSScriptRoot 'MinamotoBoard.wxs') (Join-Path $PSScriptRoot 'InstallerUI.wxs') -arch x64 -d "AppSource=$taskApp" -d "DocSource=$taskRoot" -d "MaintenanceSource=$taskMaintenance" -intermediateFolder (Join-Path $taskOutput 'obj') -o (Join-Path $taskOutput 'MinamotoBoard.msi')
 if ($LASTEXITCODE -ne 0) { throw "MSI build failed: $LASTEXITCODE" }
 Get-Item -LiteralPath (Join-Path $taskOutput 'MinamotoBoard.msi') | Select-Object FullName, Length

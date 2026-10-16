@@ -44,7 +44,8 @@ $taskShortcuts = @(Read-MsiRows 'SELECT `Name` FROM `Shortcut`' 1)
 Assert-Msi ($taskShortcuts.Count -eq 1) 'Missing Start menu shortcut'
 $taskTables = @(Read-MsiRows 'SELECT `Name` FROM `_Tables`' 1 | ForEach-Object { $_[0] })
 if ($taskTables -contains 'CustomAction') {
-    $taskActions = @(Read-MsiRows 'SELECT `Action` FROM `CustomAction`' 1)
-    Assert-Msi ($taskActions.Count -eq 0) 'Custom actions are not expected'
+    $taskActions = @(Read-MsiRows 'SELECT `Action` FROM `CustomAction`' 1 | ForEach-Object { $_[0] })
+    $taskAllowed = @('RemoveRelatedProductFromUI','SetARPINSTALLLOCATION')
+    foreach ($taskAction in $taskActions) { Assert-Msi ($taskAction -in $taskAllowed) "Unexpected custom action: $taskAction" }
 }
-Write-Output 'PASS: MSI metadata, x64, default directory, 5 payload files, Start menu shortcut, no custom actions, prerequisite boundary conditions.'
+Write-Output 'PASS: MSI metadata, x64, default directory, 5 payload files, one application shortcut, allowed maintenance actions, prerequisite boundary conditions.'

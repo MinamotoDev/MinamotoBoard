@@ -1,0 +1,92 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+ <Fragment>
+  <UI Id="BoardInstallerUI">
+   <TextStyle Id="BoardUIFont" FaceName="Microsoft YaHei UI" Size="9" />
+   <TextStyle Id="BoardTitleFont" FaceName="Microsoft YaHei UI" Size="15" Bold="yes" />
+   <Property Id="DefaultUIFont" Value="BoardUIFont" />
+   <Property Id="ErrorDialog" Value="BoardErrorDlg" />
+   <Dialog Id="BoardInstallDlg" Width="420" Height="245" Title="MinamotoBoard 安装">
+    <Control Id="Title" Type="Text" X="22" Y="18" Width="375" Height="28" Text="{\BoardTitleFont}安装 MinamotoBoard 0.3.0" />
+    <Control Id="Description" Type="Text" X="22" Y="60" Width="375" Height="42" Text="是否安装 MinamotoBoard？点击“安装”后才会修改电脑。安装需要管理员授权。" />
+    <Control Id="DirectoryLabel" Type="Text" X="22" Y="112" Width="375" Height="18" Text="安装目录：" />
+    <Control Id="Directory" Type="PathEdit" X="22" Y="135" Width="375" Height="22" Property="INSTALLFOLDER" />
+    <Control Id="Note" Type="Text" X="22" Y="168" Width="375" Height="26" Text="预览版尚无保存功能。请先关闭正在使用的白板，避免丢失笔迹。" />
+    <Control Id="Install" Type="PushButton" X="216" Y="205" Width="86" Height="28" Default="yes" Text="安装">
+     <Publish Event="SetTargetPath" Value="INSTALLFOLDER" Order="1" Condition="1" />
+     <Publish Event="EndDialog" Value="Return" Order="2" Condition="1" />
+    </Control>
+    <Control Id="Cancel" Type="PushButton" X="311" Y="205" Width="86" Height="28" Cancel="yes" Text="取消"><Publish Event="EndDialog" Value="Exit" Condition="1" /></Control>
+   </Dialog>
+   <Dialog Id="BoardMaintenanceDlg" Width="420" Height="245" Title="MinamotoBoard 安装维护">
+    <Control Id="Title" Type="Text" X="22" Y="18" Width="375" Height="28" Text="{\BoardTitleFont}已安装 MinamotoBoard" />
+    <Control Id="Description" Type="Text" X="22" Y="65" Width="375" Height="62" Text="请选择操作：&#13;&#10;覆盖安装：重新安装本包程序并恢复开始菜单入口。&#13;&#10;卸载：移除已安装的白板。&#13;&#10;文档中的插件和用户设置均会保留。" />
+    <Control Id="Note" Type="Text" X="22" Y="140" Width="375" Height="40" Text="请先关闭白板。当前尚未提供保存功能，正在书写的内容不会自动保存。" />
+    <Control Id="Repair" Type="PushButton" X="22" Y="205" Width="112" Height="28" Text="覆盖安装" Default="yes">
+     <Publish Property="REINSTALL" Value="ALL" Order="1" Condition="Installed" />
+     <Publish Property="REINSTALLMODE" Value="vamus" Order="2" Condition="Installed" />
+     <Publish Event="EndDialog" Value="Return" Order="3" Condition="1" />
+    </Control>
+    <Control Id="Remove" Type="PushButton" X="146" Y="205" Width="112" Height="28" Text="卸载"><Publish Event="NewDialog" Value="BoardRemoveDlg" Condition="1" /></Control>
+    <Control Id="Cancel" Type="PushButton" X="311" Y="205" Width="86" Height="28" Cancel="yes" Text="取消"><Publish Event="EndDialog" Value="Exit" Condition="1" /></Control>
+   </Dialog>
+   <Dialog Id="BoardRemoveDlg" Width="420" Height="245" Title="确认卸载 MinamotoBoard">
+    <Control Id="Title" Type="Text" X="22" Y="18" Width="375" Height="28" Text="{\BoardTitleFont}是否卸载 MinamotoBoard？" />
+    <Control Id="Description" Type="Text" X="22" Y="72" Width="375" Height="75" Text="卸载将移除程序文件和开始菜单入口。&#13;&#10;文档中的插件和用户设置不会删除。&#13;&#10;&#13;&#10;请先关闭白板并确认不再需要当前笔迹。" />
+    <Control Id="Remove" Type="PushButton" X="216" Y="205" Width="86" Height="28" Text="卸载">
+     <Publish Property="REMOVE" Value="ALL" Order="1" Condition="Installed" />
+     <Publish Property="BOARD_REMOVE_RELATED" Value="1" Order="2" Condition="NOT Installed AND WIX_UPGRADE_DETECTED" />
+     <Publish Event="DoAction" Value="RemoveRelatedProductFromUI" Order="3" Condition="NOT Installed AND WIX_UPGRADE_DETECTED" />
+     <Publish Event="EndDialog" Value="Return" Order="4" Condition="Installed" />
+     <Publish Event="EndDialog" Value="Exit" Order="5" Condition="NOT Installed" />
+    </Control>
+    <Control Id="Cancel" Type="PushButton" X="311" Y="205" Width="86" Height="28" Default="yes" Cancel="yes" Text="取消"><Publish Event="EndDialog" Value="Exit" Condition="1" /></Control>
+   </Dialog>
+   <Dialog Id="BoardProgressDlg" Width="420" Height="200" Title="MinamotoBoard" Modeless="yes">
+    <Control Id="Title" Type="Text" X="22" Y="18" Width="375" Height="28" Text="{\BoardTitleFont}正在处理 MinamotoBoard" />
+    <Control Id="Description" Type="Text" X="22" Y="68" Width="375" Height="22" Text="请等待 Windows Installer 完成操作。" />
+    <Control Id="Action" Type="Text" X="22" Y="100" Width="375" Height="22"><Subscribe Event="ActionText" Attribute="Text" /></Control>
+    <Control Id="Progress" Type="ProgressBar" X="22" Y="130" Width="375" Height="14" ProgressBlocks="yes"><Subscribe Event="SetProgress" Attribute="Progress" /></Control>
+    <Control Id="Cancel" Type="PushButton" X="311" Y="162" Width="86" Height="26" Cancel="yes" Text="取消"><Publish Event="SpawnDialog" Value="BoardCancelDlg" Condition="1" /></Control>
+   </Dialog>
+   <Dialog Id="BoardCancelDlg" Width="300" Height="120" Title="取消操作">
+    <Control Id="Question" Type="Text" X="18" Y="18" Width="264" Height="40" Text="是否取消当前安装或卸载操作？" />
+    <Control Id="Yes" Type="PushButton" X="108" Y="76" Width="80" Height="26" Text="是"><Publish Event="EndDialog" Value="Exit" Condition="1" /></Control>
+    <Control Id="No" Type="PushButton" X="202" Y="76" Width="80" Height="26" Text="否" Default="yes" Cancel="yes"><Publish Event="EndDialog" Value="Return" Condition="1" /></Control>
+   </Dialog>
+   <Dialog Id="BoardExitDlg" Width="420" Height="200" Title="MinamotoBoard">
+    <Control Id="Title" Type="Text" X="22" Y="18" Width="375" Height="28" Text="{\BoardTitleFont}操作完成" />
+    <Control Id="Description" Type="Text" X="22" Y="76" Width="375" Height="48" Text="Windows Installer 已完成操作。安装后的白板可从开始菜单打开；卸载后程序入口会移除。" />
+    <Control Id="Finish" Type="PushButton" X="311" Y="158" Width="86" Height="28" Default="yes" Cancel="yes" Text="完成"><Publish Event="EndDialog" Value="Return" Condition="1" /></Control>
+   </Dialog>
+   <Dialog Id="BoardFailureDlg" Width="420" Height="200" Title="MinamotoBoard">
+    <Control Id="Title" Type="Text" X="22" Y="18" Width="375" Height="28" Text="{\BoardTitleFont}操作未完成" />
+    <Control Id="Description" Type="Text" X="22" Y="76" Width="375" Height="48" Text="安装或卸载未完成。请检查权限、磁盘空间，以及是否有其他安装程序或白板窗口仍在运行。" />
+    <Control Id="Finish" Type="PushButton" X="311" Y="158" Width="86" Height="28" Default="yes" Cancel="yes" Text="关闭"><Publish Event="EndDialog" Value="Return" Condition="1" /></Control>
+   </Dialog>
+   <Dialog Id="BoardUserExitDlg" Width="420" Height="180" Title="MinamotoBoard">
+    <Control Id="Title" Type="Text" X="22" Y="24" Width="375" Height="30" Text="{\BoardTitleFont}操作已取消" />
+    <Control Id="Description" Type="Text" X="22" Y="74" Width="375" Height="40" Text="没有继续安装或卸载 MinamotoBoard。" />
+    <Control Id="Finish" Type="PushButton" X="311" Y="136" Width="86" Height="28" Default="yes" Cancel="yes" Text="关闭"><Publish Event="EndDialog" Value="Return" Condition="1" /></Control>
+   </Dialog>
+   <Dialog Id="BoardErrorDlg" Width="370" Height="180" Title="MinamotoBoard" ErrorDialog="yes">
+    <Control Id="ErrorText" Type="Text" X="18" Y="18" Width="334" Height="95" Text="错误" />
+    <Control Id="ErrorAbort" Type="PushButton" X="18" Y="135" Width="64" Height="26" Text="中止"><Publish Event="EndDialog" Value="ErrorAbort" Condition="1" /></Control>
+    <Control Id="ErrorCancel" Type="PushButton" X="88" Y="135" Width="64" Height="26" Text="取消" Cancel="yes"><Publish Event="EndDialog" Value="ErrorCancel" Condition="1" /></Control>
+    <Control Id="ErrorIgnore" Type="PushButton" X="158" Y="135" Width="64" Height="26" Text="忽略"><Publish Event="EndDialog" Value="ErrorIgnore" Condition="1" /></Control>
+    <Control Id="ErrorNo" Type="PushButton" X="228" Y="135" Width="64" Height="26" Text="否"><Publish Event="EndDialog" Value="ErrorNo" Condition="1" /></Control>
+    <Control Id="ErrorOk" Type="PushButton" X="298" Y="135" Width="64" Height="26" Text="确定" Default="yes"><Publish Event="EndDialog" Value="ErrorOk" Condition="1" /></Control>
+    <Control Id="ErrorRetry" Type="PushButton" X="88" Y="135" Width="64" Height="26" Text="重试"><Publish Event="EndDialog" Value="ErrorRetry" Condition="1" /></Control>
+    <Control Id="ErrorYes" Type="PushButton" X="228" Y="135" Width="64" Height="26" Text="是"><Publish Event="EndDialog" Value="ErrorYes" Condition="1" /></Control>
+   </Dialog>
+   <InstallUISequence>
+    <Show Dialog="BoardInstallDlg" Before="BoardProgressDlg" Condition="NOT Installed AND NOT WIX_UPGRADE_DETECTED AND NOT (REMOVE~=&quot;ALL&quot;)" />
+    <Show Dialog="BoardMaintenanceDlg" Before="BoardProgressDlg" Condition="(Installed OR WIX_UPGRADE_DETECTED) AND NOT (REMOVE~=&quot;ALL&quot;)" />
+    <Show Dialog="BoardRemoveDlg" Before="BoardProgressDlg" Condition="REMOVE~=&quot;ALL&quot;" />
+    <Show Dialog="BoardProgressDlg" Before="ExecuteAction" Condition="NOT BOARD_REMOVE_RELATED" />
+    <Show Dialog="BoardExitDlg" OnExit="success" />
+    <Show Dialog="BoardFailureDlg" OnExit="error" />
+    <Show Dialog="BoardUserExitDlg" OnExit="cancel" Condition="NOT BOARD_REMOVE_RELATED" />
+   </InstallUISequence>
+  </UI>
+ </Fragment>
+</Wix>

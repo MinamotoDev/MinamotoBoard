@@ -1,9 +1,17 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
  <Package Name="MinamotoBoard" Manufacturer="MinamotoDev" Version="0.3.0" Language="1033"
-          UpgradeCode="8D1AF8D5-305C-4670-9E17-A0DB4FB394B3" Scope="perMachine" InstallerVersion="500">
-  <MajorUpgrade DowngradeErrorMessage="A newer version of MinamotoBoard is already installed." />
+          UpgradeCode="8D1AF8D5-305C-4670-9E17-A0DB4FB394B3" Scope="perMachine" InstallerVersion="500" Codepage="936">
+  <MajorUpgrade AllowSameVersionUpgrades="yes" Schedule="afterInstallInitialize" DowngradeErrorMessage="A newer version of MinamotoBoard is already installed." />
   <MediaTemplate EmbedCab="yes" />
-  <Property Id="ARPNOMODIFY" Value="1" />
+  <UIRef Id="BoardInstallerUI" />
+  <Property Id="INSTALLFOLDER" Secure="yes">
+   <RegistrySearch Id="ExistingInstallDirectory" Root="HKLM" Key="Software\MinamotoDev\Board" Name="InstallDirectory" Type="raw" Bitness="always64" />
+  </Property>
+  <SetProperty Id="ARPINSTALLLOCATION" Value="[INSTALLFOLDER]" After="CostFinalize" Sequence="both" />
+  <!-- Used only from the UI of a new MSI to remove a related, different product.
+       It delegates to Windows Installer and is never installed as an application. -->
+  <Binary Id="MaintenanceBridge" SourceFile="$(var.MaintenanceSource)\BoardMaintenanceBridge.exe" />
+  <CustomAction Id="RemoveRelatedProductFromUI" BinaryRef="MaintenanceBridge" ExeCommand="--from-installer" Execute="immediate" Return="asyncNoWait" Impersonate="yes" />
   <Icon Id="BoardIcon.exe" SourceFile="$(var.DocSource)\src\MinamotoBoard\Assets\MinamotoBoard.ico" />
   <Property Id="ARPPRODUCTICON" Value="BoardIcon.exe" />
   <Property Id="NETFXRELEASE" Secure="yes">
@@ -18,9 +26,11 @@
    <Directory Id="MinamotoDevFolder" Name="MinamotoDev">
     <Directory Id="INSTALLFOLDER" Name="Board">
      <Component Id="MainExecutable" Guid="C414F76E-9B82-4A60-A17F-6A2AB04A14C9">
-      <File Id="BoardExe" Source="$(var.AppSource)\MinamotoBoard.exe" KeyPath="yes">
-       <Shortcut Id="StartMenuShortcut" Directory="ApplicationMenuFolder" Name="MinamotoBoard" WorkingDirectory="INSTALLFOLDER" Advertise="yes" Icon="BoardIcon.exe" IconIndex="0" />
-      </File>
+      <File Id="BoardExe" Source="$(var.AppSource)\MinamotoBoard.exe" KeyPath="yes" />
+     </Component>
+     <Component Id="ApplicationShortcut" Guid="E90AA183-DF79-4D63-9B36-20BB2F323414">
+      <Shortcut Id="StartMenuShortcut" Directory="ApplicationMenuFolder" Name="MinamotoBoard" Target="[#BoardExe]" WorkingDirectory="INSTALLFOLDER" Advertise="no" Icon="BoardIcon.exe" IconIndex="0" />
+      <RegistryValue Root="HKLM" Key="Software\MinamotoDev\Board" Name="InstallDirectory" Type="string" Value="[INSTALLFOLDER]" KeyPath="yes" />
      </Component>
      <Component Id="ApplicationConfig" Guid="88C5BFD9-2DCE-4B01-8021-2F91E745D05C">
       <File Source="$(var.AppSource)\MinamotoBoard.exe.config" KeyPath="yes" />
@@ -46,7 +56,7 @@
    </Directory>
   </StandardDirectory>
   <Feature Id="Board" Title="MinamotoBoard" Level="1">
-   <ComponentRef Id="MainExecutable" /><ComponentRef Id="ApplicationConfig" />
+   <ComponentRef Id="MainExecutable" /><ComponentRef Id="ApplicationShortcut" /><ComponentRef Id="ApplicationConfig" />
    <ComponentRef Id="PluginApi" /><ComponentRef Id="Instructions" />
    <ComponentRef Id="PluginInstructions" /><ComponentRef Id="MenuFolder" />
   </Feature>

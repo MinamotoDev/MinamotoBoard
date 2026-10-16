@@ -20,6 +20,7 @@ namespace MinamotoBoard.UI
         private WindowState previousState;
         private string colorName = "白色";
         private readonly BoardDocument document;
+        private double toolbarScale = 1;
 #if !NO_PLUGINS
         private PluginManager plugins;
         private readonly bool safeMode;
@@ -183,6 +184,39 @@ namespace MinamotoBoard.UI
 
         private void OnHideToolbar(object sender, RoutedEventArgs e) { SetToolbarVisible(false); }
         private void OnShowToolbar(object sender, RoutedEventArgs e) { SetToolbarVisible(true); }
+
+        private void OnBoardSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (ToolsPanel == null) return;
+            if (Toolbar != null) Toolbar.MaxWidth = Math.Max(0, e.NewSize.Width - 32);
+            // WPF already accounts for monitor DPI. On large logical viewports,
+            // make the floating toolbar modestly smaller, never below 44 DIP
+            // for built-in touch targets (50 DIP * minimum scale 0.9 = 45 DIP).
+            double relativeSize = Math.Min(e.NewSize.Width / 1600.0, e.NewSize.Height / 900.0);
+            double scale = Math.Round(relativeSize > 1 ? Math.Max(0.9, 1 / relativeSize) : 1, 2);
+            if (Math.Abs(scale - toolbarScale) < 0.01) return;
+            toolbarScale = scale;
+            ToolsPanel.LayoutTransform = new ScaleTransform(scale, scale);
+        }
+
+        private void OnToolbarScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            if (ToolbarLeft == null || ToolbarRight == null || ToolbarScroll == null) return;
+            bool overflow = ToolbarScroll.ScrollableWidth > 1;
+            ToolbarLeft.Visibility = ToolbarRight.Visibility = overflow ? Visibility.Visible : Visibility.Collapsed;
+            ToolbarLeft.IsEnabled = ToolbarScroll.HorizontalOffset > 1;
+            ToolbarRight.IsEnabled = ToolbarScroll.HorizontalOffset + 1 < ToolbarScroll.ScrollableWidth;
+        }
+
+        private void OnToolbarLeft(object sender, RoutedEventArgs e)
+        {
+            ToolbarScroll.ScrollToHorizontalOffset(ToolbarScroll.HorizontalOffset - 320 * toolbarScale);
+        }
+
+        private void OnToolbarRight(object sender, RoutedEventArgs e)
+        {
+            ToolbarScroll.ScrollToHorizontalOffset(ToolbarScroll.HorizontalOffset + 320 * toolbarScale);
+        }
 
         private void SetToolbarVisible(bool visible)
         {
