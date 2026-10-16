@@ -127,8 +127,10 @@ namespace MinamotoBoard.UI
 
         private static Image AssetImage(string name, double size)
         {
-            return new Image { Width = size, Height = size,
+            Image image = new Image { Width = size, Height = size,
                 Source = new BitmapImage(new Uri("pack://application:,,,/Assets/About/" + name, UriKind.Absolute)) };
+            RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
+            return image;
         }
 
         private static UIElement GitHubMark()
