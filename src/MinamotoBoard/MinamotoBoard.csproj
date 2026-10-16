@@ -33,7 +33,12 @@
     <Page Include="UI\MainWindow.xaml"><Generator>MSBuild:Compile</Generator></Page>
     <Compile Include="App.xaml.cs"><DependentUpon>App.xaml</DependentUpon></Compile>
     <Compile Include="UI\MainWindow.xaml.cs"><DependentUpon>MainWindow.xaml</DependentUpon></Compile>
+    <Compile Include="UI\MainWindow.Tools.cs" />
+    <Compile Include="UI\ToolbarIcons.cs" />
     <Compile Include="Ink\InkTools.cs" />
+    <Compile Include="Ink\DrawingToolOptions.cs" />
+    <Compile Include="Ink\InstrumentOverlay.cs" />
+    <Compile Include="Ink\RegionFill.cs" />
     <Compile Include="Models\BoardDocument.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Plugins\PluginHost.cs" Condition="'$(NoPlugins)' != 'true'" />

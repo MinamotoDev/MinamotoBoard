@@ -41,14 +41,14 @@ namespace MinamotoBoard.Ink
 
         public void SetPenWidth(double width)
         {
-            if (Array.IndexOf(PenWidths, width) < 0) throw new ArgumentOutOfRangeException("width");
+            if (double.IsNaN(width) || double.IsInfinity(width) || width < 1 || width > 40) throw new ArgumentOutOfRangeException("width");
             canvas.DefaultDrawingAttributes.Width = width;
             canvas.DefaultDrawingAttributes.Height = width;
         }
 
         public void SetEraserWidth(double width)
         {
-            if (Array.IndexOf(EraserWidths, width) < 0) throw new ArgumentOutOfRangeException("width");
+            if (double.IsNaN(width) || double.IsInfinity(width) || width < 8 || width > 128) throw new ArgumentOutOfRangeException("width");
             canvas.EraserShape = new EllipseStylusShape(width, width);
         }
     }

@@ -106,8 +106,8 @@ namespace MinamotoBoard.UI
             layout.Children.Add(project);
             layout.Children.Add(new TextBlock { Text = "维护人员", FontSize = 16,
                 FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 12) });
-            layout.Children.Add(Maintainer("丹羽　空", "NiwaSora.jpg", null));
             layout.Children.Add(Maintainer("MinamotoDev", "MinamotoDev.png", "https://github.com/MinamotoDev"));
+            layout.Children.Add(Maintainer("丹羽　空", "NiwaSora.jpg", null));
             return new ScrollViewer { Content = layout, VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
         }
