@@ -6,10 +6,10 @@
 
 ## 运行
 
-当前构建的程序：`artifacts\release-0.4.0\app\MinamotoBoard.exe`。双击即可运行。
+当前构建的程序：`artifacts\release-0.3.1\app\MinamotoBoard.exe`。双击即可运行。
 复制到另一台电脑时，请同时复制同目录的 `MinamotoBoard.exe.config` 与 `MinamotoBoard.PluginApi.dll`。
 
-无插件独立版位于 `artifacts\release-0.4.0\MinamotoBoard-no-plugins.exe`，可只复制这一份 EXE。
+无插件独立版位于 `artifacts\release-0.3.1\MinamotoBoard-no-plugins.exe`，可只复制这一份 EXE。
 生成两份 Release 资产可运行 `./scripts/build-release.ps1`，该脚本不运行测试。
 
 常规本地构建的程序位于 `src\MinamotoBoard\bin\Release\MinamotoBoard.exe`。
@@ -17,25 +17,22 @@
 ## 使用
 
 - 启动默认全屏，绿板 `#236B45`，白色圆头画笔，4 DIP。
-- 工具栏使用图标，提供画笔、橡皮、直尺、三角板、圆规和油漆桶。
-- 在工具图标上向上滑动调出颜色和样式选项，粗细使用连续滑杆调整；鼠标右键也可打开选项。
-- 拖动尺身移动，拖动蓝色手柄旋转，沿尺边绘制直线。三角板提供 45° 和 30° / 60° 样式。
-- 圆规中心可移动，蓝色手柄调整开口与方向，沿虚线圆周拖动画弧。
-- 油漆桶填充点击位置的封闭区域；开放区域不填色。
-- 橡皮局部擦除墨迹，触及填色区域时移除整块填色。
-- 加页、上一页和下一页管理页面，最多 100 页；悬停翻页图标可查看页码。
+- 底部选择画笔、橡皮、五种笔色；笔宽为 2 / 4 / 6 / 10 / 16 DIP。
+- 橡皮为原生局部擦除，直径可选 16 / 32 / 64 DIP。
+- “加页”在当前页后插入空白页；“上一页 / 下一页”切换页面，页码显示当前位置，最多 100 页。
 - “清屏”确认后删除当前页面的全部墨迹，无法撤销。
-- 收起工具栏后，左下角圆形按钮显示当前工具图标，点击展开工具栏。
+- 选颜色会切回画笔；切换工具保留已选颜色与宽度。
+- 工具栏可以隐藏，底部的“显示工具栏”按钮可恢复。
 - `F11` 切换全屏，`Esc` 退出全屏，`Ctrl+Tab` 隐藏/显示工具栏。
 - 普通 `Tab` 保留给键盘焦点导航。
 - 窗口缩小时超出边界的笔迹暂时不可见，放大后重新显示；不缩放或移动原有笔迹坐标。
-- 自由书写使用原生 `InkCanvas`；尺规绘制生成可擦除的原生墨迹。
+- 鼠标、手指和兼容触控笔交由原生 `InkCanvas` 处理；没有叠加 Touch/Mouse 事件绘图逻辑。
 - 未宣称支持可靠的手掌防误触；多指和设备特有行为需实机验证。
 
 旧显卡有显示问题时可显式启动进程级软件渲染，不修改系统配置：
 
 ```powershell
-& .\artifacts\release-0.4.0\app\MinamotoBoard.exe --software-rendering
+& .\artifacts\release-0.3.1\app\MinamotoBoard.exe --software-rendering
 ```
 
 ## 运行时检查
