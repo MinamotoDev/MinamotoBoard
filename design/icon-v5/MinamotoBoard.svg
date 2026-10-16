@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 64 64">
+ <defs>
+  <linearGradient id="pink"><stop stop-color="#F8B4BC"/><stop offset="1" stop-color="#D97F8E"/></linearGradient>
+  <linearGradient id="metal"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#AEBAB6"/></linearGradient>
+ </defs>
+ <rect x="2" y="2" width="60" height="60" rx="13" fill="#236B45"/>
+ <g transform="rotate(45 32 32)">
+  <path transform="translate(1.2 1.2)" d="M28 44V12A2 2 0 0 1 30 10H34A2 2 0 0 1 36 12V44L32 55Z" fill="#000000" opacity="0.157"/>
+  <path d="M28 20V12A2 2 0 0 1 30 10H34A2 2 0 0 1 36 12V20Z" fill="url(#pink)"/>
+  <path d="M28 20H36V44H28Z" fill="#E4BA58"/>
+  <path d="M28 20H30V44H28Z" fill="#EAD08C"/>
+  <path d="M34 20H36V44H34Z" fill="#CDA03F"/>
+  <path d="M28 17H36V21H28Z" fill="url(#metal)"/>
+  <path d="M28 44H36L32 55Z" fill="#F2D3A4"/>
+  <path d="M34 44H36L32 55Z" fill="#C9A477"/>
+  <path d="M30.55 51H33.45L32 55Z" fill="#24332B"/>
+ </g>
+</svg>

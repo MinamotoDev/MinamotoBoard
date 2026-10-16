@@ -1,9 +1,11 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
- <Package Name="MinamotoBoard" Manufacturer="MinamotoDev" Version="0.2.0" Language="1033"
+ <Package Name="MinamotoBoard" Manufacturer="MinamotoDev" Version="0.2.1" Language="1033"
           UpgradeCode="8D1AF8D5-305C-4670-9E17-A0DB4FB394B3" Scope="perMachine" InstallerVersion="500">
   <MajorUpgrade DowngradeErrorMessage="A newer version of MinamotoBoard is already installed." />
   <MediaTemplate EmbedCab="yes" />
   <Property Id="ARPNOMODIFY" Value="1" />
+  <Icon Id="BoardIcon.exe" SourceFile="$(var.DocSource)\src\MinamotoBoard\Assets\MinamotoBoard.ico" />
+  <Property Id="ARPPRODUCTICON" Value="BoardIcon.exe" />
   <Property Id="NETFXRELEASE" Secure="yes">
    <RegistrySearch Id="FindNetFx" Root="HKLM" Key="SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" Name="Release" Type="raw" Bitness="always64" />
   </Property>
@@ -17,7 +19,7 @@
     <Directory Id="INSTALLFOLDER" Name="Board">
      <Component Id="MainExecutable" Guid="C414F76E-9B82-4A60-A17F-6A2AB04A14C9">
       <File Id="BoardExe" Source="$(var.AppSource)\MinamotoBoard.exe" KeyPath="yes">
-       <Shortcut Id="StartMenuShortcut" Directory="ApplicationMenuFolder" Name="MinamotoBoard" WorkingDirectory="INSTALLFOLDER" Advertise="yes" />
+       <Shortcut Id="StartMenuShortcut" Directory="ApplicationMenuFolder" Name="MinamotoBoard" WorkingDirectory="INSTALLFOLDER" Advertise="yes" Icon="BoardIcon.exe" IconIndex="0" />
       </File>
      </Component>
      <Component Id="ApplicationConfig" Guid="88C5BFD9-2DCE-4B01-8021-2F91E745D05C">

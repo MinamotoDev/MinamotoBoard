@@ -2,7 +2,11 @@
 
 ## 安装
 
-生成文件：`artifacts\installer\MinamotoBoard.msi`，版本 **0.2.0**，x64，单文件内嵌 CAB，无在线下载依赖。
+生成文件：`artifacts\installer\MinamotoBoard.msi`，版本 **0.2.1**，x64，单文件内嵌 CAB，无在线下载依赖。
+
+0.2.1 合入用户选定的 v5 铅笔图标：EXE、WPF 主窗口、开始菜单快捷方式和卸载列表。
+本次仅完成 Release 构建和 MSI 打包，按用户要求未运行测试、只读校验脚本或安装程序。
+此前 0.2.0 的测试记录不作为 0.2.1 的运行验证结果。
 
 默认安装位置：
 
@@ -49,12 +53,11 @@ MSI 构建额外使用 **WiX CLI 5.0.2**（构建工具，不是应用运行依�
 # 首次准备构建工具，需要联网；后续构建无需重复下载。
 .\installer\bootstrap-wix.ps1
 
-# 编译并测试
-.\build.ps1 -Test -OutputDirectory artifacts\plugins-release
+# 编译（不运行测试）
+.\build.ps1 -OutputDirectory artifacts\release-0.2.1
 
-# 生成和只读校验安装包
-.\installer\build-msi.ps1 -AppSource artifacts\plugins-release
-.\installer\verify-msi.ps1
+# 生成安装包
+.\installer\build-msi.ps1
 ```
 
 脚本对 WiX 包校验固定 SHA256。升级工具时需人工核对官方来源并更新固定版本及哈希。
