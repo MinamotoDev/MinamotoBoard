@@ -1,6 +1,6 @@
 # MinamotoBoard MSI
 
-当前本地构建版本：**0.3.1**，尚未发布 GitHub。
+当前版本：**0.3.1**。[GitHub Release](https://github.com/MinamotoDev/MinamotoBoard/releases/tag/v0.3.1)。
 
 ## 安装与卸载
 
