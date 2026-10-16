@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 #if !NO_PLUGINS
 using MinamotoBoard.Plugins;
@@ -84,13 +86,23 @@ namespace MinamotoBoard.UI
                 FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 16) });
             const string repository = "https://github.com/MinamotoDev/MinamotoBoard";
             DockPanel project = new DockPanel { Margin = new Thickness(0, 0, 0, 24) };
-            Button github = new Button { Content = AssetImage("GitHub-Mark.png", 32), Width = 48, Height = 48,
-                Padding = new Thickness(8), ToolTip = repository };
+            Button github = new Button { Content = GitHubMark(), Width = 48, Height = 48,
+                Background = Brushes.Transparent, BorderThickness = new Thickness(0),
+                Cursor = System.Windows.Input.Cursors.Hand, ToolTip = repository };
+            FrameworkElementFactory surface = new FrameworkElementFactory(typeof(Border));
+            surface.SetValue(Border.BackgroundProperty, Brushes.Transparent);
+            FrameworkElementFactory content = new FrameworkElementFactory(typeof(ContentPresenter));
+            content.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+            content.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+            surface.AppendChild(content);
+            github.Template = new ControlTemplate(typeof(Button)) { VisualTree = surface };
             System.Windows.Automation.AutomationProperties.SetName(github, "访问 GitHub 项目");
             github.Click += delegate { OpenLink(repository); };
             DockPanel.SetDock(github, Dock.Left); project.Children.Add(github);
-            project.Children.Add(new TextBlock { Text = repository, TextWrapping = TextWrapping.Wrap,
-                VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) });
+            TextBlock projectLink = new TextBlock { TextWrapping = TextWrapping.Wrap,
+                VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) };
+            projectLink.Inlines.Add(CreateLink(repository, repository));
+            project.Children.Add(projectLink);
             layout.Children.Add(project);
             layout.Children.Add(new TextBlock { Text = "维护人员", FontSize = 16,
                 FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 12) });
@@ -108,15 +120,7 @@ namespace MinamotoBoard.UI
             DockPanel.SetDock(image, Dock.Left); row.Children.Add(image);
             TextBlock label = new TextBlock { FontSize = 16, VerticalAlignment = VerticalAlignment.Center };
             if (address == null) label.Text = name;
-            else
-            {
-                Hyperlink link = new Hyperlink(new Run(name)) { NavigateUri = new Uri(address) };
-                link.RequestNavigate += delegate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
-                {
-                    OpenLink(address); e.Handled = true;
-                };
-                label.Inlines.Add(link);
-            }
+            else label.Inlines.Add(CreateLink(name, address));
             row.Children.Add(label);
             return row;
         }
@@ -125,6 +129,30 @@ namespace MinamotoBoard.UI
         {
             return new Image { Width = size, Height = size,
                 Source = new BitmapImage(new Uri("pack://application:,,,/Assets/About/" + name, UriKind.Absolute)) };
+        }
+
+        private static UIElement GitHubMark()
+        {
+            // Official Primer Octicons mark-github-16 path; vector rendering has no bitmap background.
+            System.Windows.Resources.StreamResourceInfo resource = Application.GetResourceStream(
+                new Uri("pack://application:,,,/Assets/About/GitHub-Mark.geometry", UriKind.Absolute));
+            using (StreamReader reader = new StreamReader(resource.Stream))
+            {
+                Geometry geometry = Geometry.Parse(reader.ReadToEnd());
+                geometry.Freeze();
+                return new System.Windows.Shapes.Path { Data = geometry, Fill = Brushes.Black,
+                    Width = 32, Height = 32, Stretch = Stretch.Uniform };
+            }
+        }
+
+        private Hyperlink CreateLink(string text, string address)
+        {
+            Hyperlink link = new Hyperlink(new Run(text)) { NavigateUri = new Uri(address) };
+            link.RequestNavigate += delegate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+            {
+                OpenLink(address); e.Handled = true;
+            };
+            return link;
         }
 
         private void OpenLink(string address)

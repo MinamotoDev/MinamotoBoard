@@ -45,7 +45,7 @@
     <None Include="App.config" />
     <None Include="app.manifest" />
     <Resource Include="Assets\MinamotoBoard.ico" />
-    <Resource Include="Assets\About\GitHub-Mark.png" />
+    <Resource Include="Assets\About\GitHub-Mark.geometry" />
     <Resource Include="Assets\About\MinamotoDev.png" />
     <Resource Include="Assets\About\NiwaSora.jpg" />
   </ItemGroup>
