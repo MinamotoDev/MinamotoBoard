@@ -1,0 +1,10 @@
+# Visual Studio / MSBuild
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+*.suo
+*.sln.docstates
+TestResults/
+artifacts/
+*.log

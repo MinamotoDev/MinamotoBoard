@@ -1,0 +1,64 @@
+<Window x:Class="MinamotoBoard.UI.MainWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ Title="MinamotoBoard · 教室绿板" Width="1100" Height="720" MinWidth="640" MinHeight="480"
+ WindowStartupLocation="CenterScreen" Background="#236B45"
+ PreviewKeyDown="OnPreviewKeyDown" Closing="OnClosing">
+ <Window.Resources>
+  <Style TargetType="Button">
+   <Setter Property="MinWidth" Value="52" /><Setter Property="MinHeight" Value="48" />
+   <Setter Property="Margin" Value="3" /><Setter Property="Padding" Value="12,6" />
+   <Setter Property="Background" Value="#F0F3F1" /><Setter Property="Foreground" Value="#173F2B" />
+   <Setter Property="BorderThickness" Value="1" /><Setter Property="BorderBrush" Value="#CCD8D0" />
+   <Setter Property="FontSize" Value="16" />
+  </Style>
+  <Style TargetType="RadioButton">
+   <Setter Property="MinWidth" Value="48" /><Setter Property="MinHeight" Value="48" />
+   <Setter Property="Margin" Value="3" /><Setter Property="Foreground" Value="#173F2B" />
+   <Setter Property="FontSize" Value="16" />
+   <Setter Property="Template">
+    <Setter.Value><ControlTemplate TargetType="RadioButton">
+     <Border x:Name="ChoiceBorder" Background="#F0F3F1" BorderBrush="#CCD8D0" BorderThickness="2" CornerRadius="8" Padding="8">
+      <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+     </Border>
+     <ControlTemplate.Triggers>
+      <Trigger Property="IsChecked" Value="True"><Setter TargetName="ChoiceBorder" Property="BorderBrush" Value="#207345" /><Setter TargetName="ChoiceBorder" Property="Background" Value="#D8EFDE" /></Trigger>
+      <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="ChoiceBorder" Property="BorderBrush" Value="#246CC0" /></Trigger>
+      <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ChoiceBorder" Property="Background" Value="#E3EDE6" /></Trigger>
+     </ControlTemplate.Triggers>
+    </ControlTemplate></Setter.Value>
+   </Setter>
+  </Style>
+  <Style TargetType="ComboBox">
+   <Setter Property="MinWidth" Value="96" /><Setter Property="MinHeight" Value="48" />
+   <Setter Property="Margin" Value="3" /><Setter Property="FontSize" Value="16" />
+   <Setter Property="VerticalContentAlignment" Value="Center" />
+   <Setter Property="ItemContainerStyle"><Setter.Value><Style TargetType="ComboBoxItem"><Setter Property="MinHeight" Value="44" /><Setter Property="VerticalContentAlignment" Value="Center" /></Style></Setter.Value></Setter>
+  </Style>
+ </Window.Resources>
+ <Grid>
+  <!-- Keep strokes in DIPs; resizing clips/reveals ink without rescaling coordinates. -->
+  <InkCanvas x:Name="Board" Background="#236B45" ClipToBounds="True" Focusable="True" />
+  <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20" Padding="14,9" CornerRadius="8" Background="#1A5135" IsHitTestVisible="False">
+   <StackPanel><TextBlock Text="MinamotoBoard" Foreground="#FFFFFF" FontSize="18" FontWeight="SemiBold" />
+    <TextBlock x:Name="ToolStatus" Text="白色画笔 · 4 DIP" Foreground="#D7E8DD" FontSize="13" Margin="0,3,0,0" /></StackPanel>
+  </Border>
+  <Border x:Name="Toolbar" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" MaxWidth="1120" Margin="16" Padding="9" Background="#FCFDFB" BorderBrush="#DAE3DD" BorderThickness="1" CornerRadius="14">
+   <WrapPanel HorizontalAlignment="Center">
+    <RadioButton x:Name="PenButton" Content="画笔" GroupName="Tool" Checked="OnPenSelected" AutomationProperties.Name="画笔" />
+    <RadioButton x:Name="EraserButton" Content="橡皮" GroupName="Tool" Checked="OnEraserSelected" AutomationProperties.Name="橡皮擦" />
+    <RadioButton x:Name="WhiteButton" GroupName="Color" Tag="#FFFFFF" Checked="OnColorSelected" ToolTip="白色" AutomationProperties.Name="白色"><Ellipse Width="24" Height="24" Fill="#FFFFFF" Stroke="#829087" /></RadioButton>
+    <RadioButton GroupName="Color" Tag="#FFD54F" Checked="OnColorSelected" ToolTip="黄色" AutomationProperties.Name="黄色"><Ellipse Width="24" Height="24" Fill="#FFD54F" Stroke="#829087" /></RadioButton>
+    <RadioButton GroupName="Color" Tag="#F44336" Checked="OnColorSelected" ToolTip="红色" AutomationProperties.Name="红色"><Ellipse Width="24" Height="24" Fill="#F44336" Stroke="#829087" /></RadioButton>
+    <RadioButton GroupName="Color" Tag="#42A5F5" Checked="OnColorSelected" ToolTip="蓝色" AutomationProperties.Name="蓝色"><Ellipse Width="24" Height="24" Fill="#42A5F5" Stroke="#829087" /></RadioButton>
+    <RadioButton GroupName="Color" Tag="#000000" Checked="OnColorSelected" ToolTip="黑色" AutomationProperties.Name="黑色"><Ellipse Width="24" Height="24" Fill="#000000" /></RadioButton>
+    <StackPanel Orientation="Horizontal"><TextBlock Text="笔宽" VerticalAlignment="Center" Foreground="#355341" Margin="8,0,2,0" /><ComboBox x:Name="PenWidth" SelectionChanged="OnPenWidthChanged" AutomationProperties.Name="画笔粗细" /></StackPanel>
+    <StackPanel Orientation="Horizontal"><TextBlock Text="橡皮" VerticalAlignment="Center" Foreground="#355341" Margin="8,0,2,0" /><ComboBox x:Name="EraserWidth" SelectionChanged="OnEraserWidthChanged" AutomationProperties.Name="橡皮擦大小" /></StackPanel>
+    <Button Content="隐藏" Click="OnHideToolbar" ToolTip="隐藏工具栏 (Ctrl+Tab)" />
+    <Button x:Name="FullscreenButton" Content="退出全屏" Click="OnToggleFullscreen" ToolTip="F11 切换全屏；Esc 退出全屏" />
+    <Button Content="关闭" Click="OnClose" />
+   </WrapPanel>
+  </Border>
+  <Button x:Name="ShowToolbarButton" Content="显示工具栏" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="16" Visibility="Collapsed" Click="OnShowToolbar" />
+ </Grid>
+</Window>
