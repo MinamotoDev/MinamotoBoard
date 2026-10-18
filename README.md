@@ -2,7 +2,7 @@
 
 面向大屏触屏电脑的轻量白板。
 
-[下载最新版本](https://github.com/MinamotoDev/MinamotoBoard/releases/latest) · [版本说明](docs/releases/0.3.1.md)
+[下载最新版本](https://github.com/MinamotoDev/MinamotoBoard/releases/latest)
 
 ## 运行
 
