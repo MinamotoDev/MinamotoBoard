@@ -1,20 +1,32 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
- <Package Name="MinamotoBoard" Manufacturer="MinamotoDev" Version="0.5.0" Language="2052"
-          UpgradeCode="8D1AF8D5-305C-4670-9E17-A0DB4FB394B3" Scope="perMachine" InstallerVersion="500" Codepage="936">
-  <MajorUpgrade AllowSameVersionUpgrades="yes" IgnoreLanguage="yes" Schedule="afterInstallInitialize" DowngradeErrorMessage="A newer version of MinamotoBoard is already installed." />
+ <Package Name="MinamotoBoard" Manufacturer="MinamotoDev" Version="0.6.0" Language="!(loc.BoardLanguage)"
+          UpgradeCode="8D1AF8D5-305C-4670-9E17-A0DB4FB394B3" Scope="perMachine" InstallerVersion="500" Codepage="65001">
+  <SummaryInformation Codepage="0" Description="MinamotoBoard" Manufacturer="MinamotoDev" Keywords="Installer" Comments="MinamotoBoard installer" />
+  <MajorUpgrade AllowSameVersionUpgrades="yes" IgnoreLanguage="yes" Schedule="afterInstallInitialize" DowngradeErrorMessage="!(loc.BoardNewerVersion)" />
   <MediaTemplate EmbedCab="yes" />
+  <?ifdef var.LocalizationSource ?>
+  <Binary Id="BoardLocalization" SourceFile="$(var.LocalizationSource)" />
+  <CustomAction Id="SelectBoardLanguage" BinaryRef="BoardLocalization" DllEntry="SelectBoardLanguage" Execute="immediate" Return="check" />
+  <InstallUISequence><Custom Action="SelectBoardLanguage" Before="FindRelatedProducts" /></InstallUISequence>
+  <InstallExecuteSequence><Custom Action="SelectBoardLanguage" Before="FindRelatedProducts" /></InstallExecuteSequence>
+  <AdminUISequence><Custom Action="SelectBoardLanguage" Before="CostInitialize" /></AdminUISequence>
+  <AdminExecuteSequence><Custom Action="SelectBoardLanguage" Before="CostInitialize" /></AdminExecuteSequence>
+  <?endif?>
+  <Property Id="ARPSYSTEMCOMPONENT" Value="1" />
+  <WixVariable Id="WixUIBannerBmp" Value="$(var.MaintenanceSource)\BoardBanner.bmp" />
+  <WixVariable Id="WixUIDialogBmp" Value="$(var.MaintenanceSource)\BoardDialog.bmp" />
   <UIRef Id="BoardInstallerUI" />
   <Property Id="INSTALLFOLDER" Secure="yes">
    <RegistrySearch Id="ExistingInstallDirectory" Root="HKLM" Key="Software\MinamotoDev\Board" Name="InstallDirectory" Type="raw" Bitness="always64" />
   </Property>
   <SetProperty Id="ARPINSTALLLOCATION" Value="[INSTALLFOLDER]" After="CostFinalize" Sequence="both" />
-  <!-- Used only from the UI of a new MSI to remove a related, different product.
-       It delegates to Windows Installer and is never installed as an application. -->
+  <!-- The embedded bridge handles maintenance; its installed copy is the uninstall entry point. -->
   <Binary Id="MaintenanceBridge" SourceFile="$(var.MaintenanceSource)\BoardMaintenanceBridge.exe" />
   <Property Id="BOARD_DELETE_CONFIG" Secure="yes" />
   <CustomAction Id="RemoveRelatedProductFromUI" BinaryRef="MaintenanceBridge" ExeCommand="--from-installer --delete-config=[BOARD_DELETE_CONFIG] --user-sid=[UserSID]" Execute="immediate" Return="asyncNoWait" Impersonate="yes" />
   <!-- Run only after a successful interactive uninstall, in the UI user's context. -->
   <CustomAction Id="DeleteBoardUserData" BinaryRef="MaintenanceBridge" ExeCommand="--cleanup --user-sid=[UserSID]" Execute="immediate" Return="ignore" Impersonate="yes" />
+  <CustomAction Id="LaunchBoard" FileRef="BoardExe" ExeCommand="" Execute="immediate" Return="asyncNoWait" Impersonate="yes" />
   <Icon Id="BoardIcon.exe" SourceFile="$(var.DocSource)\src\MinamotoBoard\Assets\MinamotoBoard.ico" />
   <Property Id="ARPPRODUCTICON" Value="BoardIcon.exe" />
   <Property Id="NETFXRELEASE" Secure="yes">
@@ -23,13 +35,28 @@
   <Property Id="OSBUILD" Secure="yes">
    <RegistrySearch Id="FindWindowsBuild" Root="HKLM" Key="SOFTWARE\Microsoft\Windows NT\CurrentVersion" Name="CurrentBuildNumber" Type="raw" Bitness="always64" />
   </Property>
-  <Launch Condition="Installed OR (VersionNT64 AND OSBUILD &gt;= 19045)" Message="MinamotoBoard requires x64 Windows 10 22H2 or later." />
-  <Launch Condition="Installed OR (NETFXRELEASE &gt;= &quot;#528040&quot;)" Message="MinamotoBoard requires .NET Framework 4.8 or later. This offline installer does not download runtimes." />
+  <Launch Condition="Installed OR (VersionNT64 AND OSBUILD &gt;= 19045)" Message="!(loc.BoardWindowsRequired)" />
+  <Launch Condition="Installed OR (NETFXRELEASE &gt;= &quot;#528040&quot;)" Message="!(loc.BoardFrameworkRequired)" />
   <StandardDirectory Id="ProgramFiles64Folder">
    <Directory Id="MinamotoDevFolder" Name="MinamotoDev">
     <Directory Id="INSTALLFOLDER" Name="Board">
      <Component Id="MainExecutable" Guid="C414F76E-9B82-4A60-A17F-6A2AB04A14C9">
       <File Id="BoardExe" Source="$(var.AppSource)\MinamotoBoard.exe" KeyPath="yes" />
+     </Component>
+     <Component Id="Uninstaller" Guid="164A53AF-7955-4A65-A6E9-6CA47E48BE27">
+      <File Id="BoardUninstaller" Source="$(var.MaintenanceSource)\BoardMaintenanceBridge.exe" Name="Uninstall.exe" KeyPath="yes" />
+     </Component>
+     <Component Id="UninstallRegistration" Guid="49DD1316-6532-4627-8394-8F60C3C019D7">
+      <RegistryKey Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\MinamotoBoard">
+       <RegistryValue Name="DisplayName" Type="string" Value="MinamotoBoard" KeyPath="yes" />
+       <RegistryValue Name="DisplayVersion" Type="string" Value="[ProductVersion]" />
+       <RegistryValue Name="Publisher" Type="string" Value="MinamotoDev" />
+       <RegistryValue Name="DisplayIcon" Type="string" Value="&quot;[#BoardExe]&quot;,0" />
+       <RegistryValue Name="InstallLocation" Type="string" Value="[INSTALLFOLDER]" />
+       <RegistryValue Name="UninstallString" Type="string" Value="&quot;[#BoardUninstaller]&quot;" />
+       <RegistryValue Name="NoModify" Type="integer" Value="1" />
+       <RegistryValue Name="NoRepair" Type="integer" Value="1" />
+      </RegistryKey>
      </Component>
      <Component Id="ApplicationShortcut" Guid="E90AA183-DF79-4D63-9B36-20BB2F323414">
       <Shortcut Id="StartMenuShortcut" Directory="ApplicationMenuFolder" Name="MinamotoBoard" Target="[#BoardExe]" WorkingDirectory="INSTALLFOLDER" Advertise="no" Icon="BoardIcon.exe" IconIndex="0" />
@@ -69,6 +96,7 @@
   </StandardDirectory>
   <Feature Id="Board" Title="MinamotoBoard" Level="1">
    <ComponentRef Id="MainExecutable" /><ComponentRef Id="ApplicationShortcut" /><ComponentRef Id="ApplicationConfig" />
+   <ComponentRef Id="Uninstaller" /><ComponentRef Id="UninstallRegistration" />
    <ComponentRef Id="PluginApi" /><ComponentRef Id="Instructions" />
    <ComponentRef Id="PluginInstructions" /><ComponentRef Id="MenuFolder" />
    <ComponentRef Id="ProjectLicense" /><ComponentRef Id="ThirdPartyNotices" /><ComponentRef Id="InstallerUiLicense" />

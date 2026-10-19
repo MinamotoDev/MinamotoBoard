@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization xmlns="http://wixtoolset.org/schemas/v4/wxl" Culture="en-US">
+  <String Id="BoardLanguage" Value="1033" />
+  <String Id="BoardLaunch" Value="Launch" />
+  <String Id="BoardRemoveQuestion" Value="Uninstall [ProductName]?" />
+  <String Id="BoardDeleteConfig" Value="Delete settings and plugins" />
+  <String Id="BoardDeleteConfigHelp" Value="Delete the current user’s MinamotoDev\Board folders in Documents and local app data." />
+  <String Id="BoardNewerVersion" Value="A newer version of MinamotoBoard is already installed." />
+  <String Id="BoardWindowsRequired" Value="MinamotoBoard requires x64 Windows 10 22H2 or later." />
+  <String Id="BoardFrameworkRequired" Value="MinamotoBoard requires .NET Framework 4.8 or later." />
+</WixLocalization>

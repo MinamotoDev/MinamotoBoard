@@ -3,7 +3,7 @@ using System.Windows.Media;
 
 namespace MinamotoBoard.Ink
 {
-    public enum BoardTool { Pen, Eraser, Ruler, SetSquare, Compass, Bucket, Highlighter }
+    public enum BoardTool { Pen, Eraser, Ruler, SetSquare, Compass, Bucket, Highlighter, SetSquare30 }
 
     public sealed class DrawingToolOptions
     {
@@ -15,7 +15,7 @@ namespace MinamotoBoard.Ink
         public DrawingAttributes Attributes()
         {
             return new DrawingAttributes { Color = Highlighter ? System.Windows.Media.Color.FromArgb(96, Color.R, Color.G, Color.B) : Color, Width = Width, Height = Highlighter ? Width * 2 : Width,
-                IgnorePressure = true, FitToCurve = false,
+                IgnorePressure = true, FitToCurve = !Highlighter && Style == 0,
                 StylusTip = Highlighter ? StylusTip.Rectangle : StylusTip.Ellipse,
                 IsHighlighter = false };
         }

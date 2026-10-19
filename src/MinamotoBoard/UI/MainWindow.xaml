@@ -30,9 +30,9 @@
  <Grid x:Name="RootLayout" SizeChanged="OnBoardSizeChanged">
   <ink:HighlighterCanvas x:Name="Board" Background="#236B45" ClipToBounds="True" Focusable="True" />
   <Grid x:Name="PluginOverlay" ClipToBounds="True" />
-  <ink:InstrumentOverlay x:Name="Instruments" ClipToBounds="True" IsHitTestVisible="False" />
+  <ink:InstrumentLayer x:Name="Instruments" ClipToBounds="True" />
   <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="12">
-   <Button Style="{StaticResource WindowIconButton}" Content="&#xE921;" Click="OnMinimize" ToolTip="最小化" AutomationProperties.Name="最小化" />
+   <Button x:Name="MinimizeButton" Style="{StaticResource WindowIconButton}" Content="&#xE921;" Click="OnMinimize" ToolTip="最小化" AutomationProperties.Name="最小化" />
    <Button x:Name="FullscreenButton" Style="{StaticResource WindowIconButton}" Content="&#xE73F;" Click="OnToggleFullscreen" ToolTip="退出全屏" AutomationProperties.Name="退出全屏" />
   </StackPanel>
   <Border x:Name="Toolbar" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="16" Padding="6"

@@ -1,3 +1,4 @@
+using MinamotoBoard.Localization;
 using System;
 using System.ComponentModel;
 #if !NO_PLUGINS
@@ -30,13 +31,19 @@ namespace MinamotoBoard.UI
 #if !NO_PLUGINS
             this.safeMode = safeMode;
 #endif
+            preferences = ToolPreferences.Load();
+            Localizer.Initialize(preferences.Language);
             InitializeComponent();
             document = new BoardDocument(Board.Strokes, Board.Background);
             tools = new InkTools(Board);
             BuildToolbar(); UpdatePageControls(); TrackInk();
             Instruments.InkCreated += delegate(System.Windows.Ink.StrokeCollection strokes) { Board.Strokes.Add(strokes); };
+            Instruments.PointerInput += Board.NotifyPointerInput;
+            Instruments.SetBinding(CursorProperty, new System.Windows.Data.Binding("Cursor") { Source = Board });
             SetFullscreen(true);
-            Closed += delegate { SaveToolPreferences(); CancelToolWork(); Instruments.CancelInteraction(); };
+            RefreshLanguage();
+            Localizer.LanguageChanged += RefreshLanguage;
+            Closed += delegate { Localizer.LanguageChanged -= RefreshLanguage; SaveToolPreferences(); CancelToolWork(); Instruments.CancelInteraction(); };
 #if !NO_PLUGINS
             settingsButton.IsEnabled = false;
             ContentRendered += OnFirstRendered;
@@ -69,9 +76,10 @@ namespace MinamotoBoard.UI
             if (previousPageButton == null) return;
             previousPageButton.IsEnabled = document.CanMovePrevious; nextPageButton.IsEnabled = document.CanMoveNext;
             addPageButton.IsEnabled = document.CanAddPage;
-            string page = string.Format("第 {0} / {1} 页", document.CurrentIndex + 1, document.Count);
-            previousPageButton.ToolTip = "上一页 · " + page; nextPageButton.ToolTip = "下一页 · " + page;
-            addPageButton.ToolTip = document.CanAddPage ? "加页 · " + page : "已达到 100 页上限";
+            string page = Localizer.Format("第 {0} / {1} 页", document.CurrentIndex + 1, document.Count);
+            Label(previousPageButton, Localizer.T("上一页") + " · " + page);
+            Label(nextPageButton, Localizer.T("下一页") + " · " + page);
+            Label(addPageButton, document.CanAddPage ? Localizer.T("加页") + " · " + page : Localizer.T("已达到 100 页上限"));
         }
         private void OnAddPage(object sender, RoutedEventArgs e)
         { if (IsWriting()) return; CaptureCurrentPage(); if (document.AddPage()) ShowCurrentPage(); }
@@ -82,7 +90,7 @@ namespace MinamotoBoard.UI
         private void OnClearPage(object sender, RoutedEventArgs e)
         {
             if (IsWriting() || Board.Strokes.Count == 0) return;
-            if (MessageBox.Show(this, "清空当前页面的全部墨迹吗？您无法撤销此操作。", "清屏", MessageBoxButton.OKCancel,
+            if (MessageBox.Show(this, Localizer.T("清空当前页面的全部墨迹吗？您无法撤销此操作。"), Localizer.T("清屏"), MessageBoxButton.OKCancel,
                 MessageBoxImage.Warning, MessageBoxResult.Cancel) != MessageBoxResult.OK) return;
             CancelToolWork(); Board.Strokes.Clear(); Board.Focus();
         }
@@ -121,10 +129,33 @@ namespace MinamotoBoard.UI
         {
             ToolOptionsPopup.IsOpen = false;
 #if !NO_PLUGINS
-            if (plugins != null) new SettingsWindow(plugins, safeMode) { Owner = this }.ShowDialog();
+            if (plugins != null) new SettingsWindow(plugins, safeMode, SelectLanguage) { Owner = this }.ShowDialog();
 #else
-            new SettingsWindow { Owner = this }.ShowDialog();
+            new SettingsWindow(SelectLanguage) { Owner = this }.ShowDialog();
 #endif
+        }
+        private void SelectLanguage(string code)
+        {
+            Localizer.SetLanguage(code);
+            SaveToolPreferences();
+        }
+        private static void Label(System.Windows.Controls.Button button, string text)
+        {
+            button.ToolTip = text;
+            System.Windows.Automation.AutomationProperties.SetName(button, text);
+        }
+        private void RefreshLanguage()
+        {
+            Language = System.Windows.Markup.XmlLanguage.GetLanguage(Localizer.CurrentLanguage);
+            ToolOptionsPopup.IsOpen = false;
+            foreach (var pair in buttonLabels) Label(pair.Key, Localizer.T(pair.Value));
+            foreach (var pair in toolButtons)
+                Label(pair.Value, InstrumentLayer.IsInstrument(pair.Key) ? Localizer.Format("新增{0}", ToolbarIcons.Name(pair.Key)) : ToolbarIcons.Name(pair.Key));
+            Label(MinimizeButton, Localizer.T("最小化"));
+            Label(FullscreenButton, Localizer.T(fullscreen ? "退出全屏" : "全屏"));
+            Label(ToolbarLeft, Localizer.T("向左滚动")); Label(ToolbarRight, Localizer.T("向右滚动"));
+            Label(ShowToolbarButton, Localizer.T("显示工具栏") + " · " + ToolbarIcons.Name(activeTool));
+            UpdatePageControls();
         }
         private void SetFullscreen(bool enabled)
         {
@@ -136,7 +167,7 @@ namespace MinamotoBoard.UI
             else
             { WindowState = WindowState.Normal; WindowStyle = WindowStyle.SingleBorderWindow; ResizeMode = ResizeMode.CanResize; WindowState = previousState; }
             fullscreen = enabled; FullscreenButton.Content = enabled ? "\uE73F" : "\uE740";
-            string label = enabled ? "退出全屏" : "全屏"; FullscreenButton.ToolTip = label;
+            string label = enabled ? Localizer.T("退出全屏") : Localizer.T("全屏"); FullscreenButton.ToolTip = label;
             System.Windows.Automation.AutomationProperties.SetName(FullscreenButton, label);
         }
         private void OnPreviewKeyDown(object sender, KeyEventArgs e)
@@ -152,7 +183,7 @@ namespace MinamotoBoard.UI
         {
             CaptureCurrentPage();
             if (!document.HasInk) return;
-            e.Cancel = MessageBox.Show(this, "确定退出应用程序吗？未保存的墨迹将全部丢失。", "关闭",
+            e.Cancel = MessageBox.Show(this, Localizer.T("确定退出应用程序吗？未保存的墨迹将全部丢失。"), Localizer.T("关闭"),
                 MessageBoxButton.OKCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel) != MessageBoxResult.OK;
         }
     }

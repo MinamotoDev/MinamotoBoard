@@ -18,9 +18,15 @@ namespace MinamotoBoard.Ink
         private DrawingAttributes renderedAttributes;
         private bool appending;
         private Rect bounds = Rect.Empty;
+        private readonly bool dashed;
+        private bool dashPaint = true;
+        private double dashRemaining;
 
-        public LiveHighlighterStroke(StylusPointCollection points, DrawingAttributes attributes) : base(points, attributes)
+        public LiveHighlighterStroke(StylusPointCollection points, DrawingAttributes attributes) : this(points, attributes, false) { }
+
+        public LiveHighlighterStroke(StylusPointCollection points, DrawingAttributes attributes, bool dashed) : base(points, attributes)
         {
+            this.dashed = dashed;
             StylusPointsChanged += delegate { if (!appending) { bounds = Rect.Empty; ResetDrawing(); } };
             StylusPointsReplaced += delegate { bounds = Rect.Empty; ResetDrawing(); };
             DrawingAttributesChanged += delegate { bounds = Rect.Empty; ResetDrawing(); };
@@ -43,7 +49,7 @@ namespace MinamotoBoard.Ink
             return bounds;
         }
 
-        private void ResetDrawing() { drawing = null; previousSweep = null; direction = new Vector(); rendered = 0; }
+        private void ResetDrawing() { drawing = null; previousSweep = null; direction = new Vector(); rendered = 0; dashPaint = true; dashRemaining = 0; }
 
         protected override void DrawCore(DrawingContext context, DrawingAttributes attributes)
         {
@@ -59,20 +65,49 @@ namespace MinamotoBoard.Ink
                 Point end = (Point)StylusPoints[rendered];
                 Point start = rendered == 0 ? end : (Point)StylusPoints[rendered - 1];
                 Vector step = end - start;
-                if (rendered == 0 || step.LengthSquared > 0.0001)
+                double distance = step.Length;
+                if (rendered == 0) PaintSweep(start, end, attributes, brush);
+                else if (distance > 0.0001)
                 {
-                    Geometry sweep = Sweep(start, end, attributes.Width / 2, attributes.Height / 2);
-                    // Adjacent sweeps share the nib footprint. Paint it once, unless the user reverses direction.
-                    bool reversal = step.LengthSquared > 0 && direction.LengthSquared > 0 && Vector.Multiply(step, direction) < 0;
-                    Geometry fresh = previousSweep == null || reversal ? sweep
-                        : Geometry.Combine(sweep, previousSweep, GeometryCombineMode.Exclude, null);
-                    fresh.Freeze(); drawing.Children.Add(new GeometryDrawing(brush, null, fresh));
-                    previousSweep = sweep;
-                    if (step.LengthSquared > 0) direction = step;
+                    if (!dashed) PaintSweep(start, end, attributes, brush);
+                    else
+                    {
+                        double dashLength = Math.Max(8, attributes.Width * 4);
+                        if (dashRemaining <= 0) dashRemaining = dashLength;
+                        Vector unit = step / distance;
+                        Point position = start;
+                        while (distance > 0.0001)
+                        {
+                            double amount = Math.Min(distance, dashRemaining);
+                            Point next = position + unit * amount;
+                            if (dashPaint) PaintSweep(position, next, attributes, brush);
+                            position = next; distance -= amount; dashRemaining -= amount;
+                            if (dashRemaining < 0.0001)
+                            {
+                                dashPaint = !dashPaint; dashRemaining = dashPaint ? dashLength : dashLength / 2;
+                                previousSweep = null; direction = new Vector();
+                            }
+                        }
+                    }
                 }
                 rendered++;
             }
             context.DrawDrawing(drawing);
+        }
+
+        private void PaintSweep(Point start, Point end, DrawingAttributes attributes, Brush brush)
+        {
+            Vector step = end - start;
+            Geometry sweep;
+            if (attributes.StylusTip == StylusTip.Rectangle) sweep = Sweep(start, end, attributes.Width / 2, attributes.Height / 2);
+            else sweep = new Stroke(new StylusPointCollection(new[] { new StylusPoint(start.X, start.Y), new StylusPoint(end.X, end.Y) }), attributes).GetGeometry();
+            bool reversal = step.LengthSquared > 0 && direction.LengthSquared > 0 && Vector.Multiply(step, direction) < 0;
+            // Opaque pen segments can overlap directly; subtracting their joins creates antialiasing seams.
+            Geometry fresh = attributes.Color.A == 255 || previousSweep == null || reversal ? sweep
+                : Geometry.Combine(sweep, previousSweep, GeometryCombineMode.Exclude, null, 0.05, ToleranceType.Absolute);
+            fresh.Freeze(); drawing.Children.Add(new GeometryDrawing(brush, null, fresh));
+            previousSweep = sweep;
+            if (step.LengthSquared > 0) direction = step;
         }
 
         private static Geometry Sweep(Point a, Point b, double x, double y)
@@ -104,16 +139,18 @@ namespace MinamotoBoard.Ink
             geometry.Freeze(); return geometry;
         }
 
-        public override Stroke Clone() { return new LiveHighlighterStroke(StylusPoints.Clone(), DrawingAttributes.Clone()); }
+        public override Stroke Clone() { return new LiveHighlighterStroke(StylusPoints.Clone(), DrawingAttributes.Clone(), dashed); }
     }
 
     public sealed class HighlighterCanvas : InkCanvas
     {
         public bool LiveHighlighter { get; set; }
+        public bool DashedInk { get; set; }
+        public int InkStyle { get; set; }
         public bool EraserCursor { get; set; }
         public double EraserDiameter { get; set; }
         private bool touchInput, cursorIsEraser;
-        private LiveHighlighterStroke current;
+        private Stroke current;
         private int pointer;
         private TouchDevice touch;
         private Cursor highlighterCursor;
@@ -132,7 +169,7 @@ namespace MinamotoBoard.Ink
             {
                 UseCustomCursor = true; Cursor = Cursors.None; Mouse.UpdateCursor(); return;
             }
-            if (!LiveHighlighter && !EraserCursor) { ReleaseHighlighterCursor(); UseCustomCursor = false; ClearValue(CursorProperty); return; }
+            if (!LiveHighlighter && !DashedInk && !EraserCursor) { ReleaseHighlighterCursor(); UseCustomCursor = false; ClearValue(CursorProperty); return; }
             DpiScale dpi = VisualTreeHelper.GetDpi(this);
             DrawingAttributes attributes = DefaultDrawingAttributes;
             double width = EraserCursor ? EraserDiameter : attributes.Width;
@@ -162,20 +199,20 @@ namespace MinamotoBoard.Ink
 
         private bool Begin(Point point, int device)
         {
-            if (!LiveHighlighter || pointer != 0) return false;
+            if ((!LiveHighlighter && !DashedInk) || pointer != 0) return false;
             pointer = device;
-            current = new LiveHighlighterStroke(new StylusPointCollection(new[] { new StylusPoint(point.X, point.Y) }), DefaultDrawingAttributes.Clone());
+            current = new LiveHighlighterStroke(new StylusPointCollection(new[] { new StylusPoint(point.X, point.Y) }), DefaultDrawingAttributes.Clone(), InkStyle == 1);
             Strokes.Add(current); return true;
         }
         private void Move(Point point)
         {
             if (current == null) return;
             Point last = (Point)current.StylusPoints[current.StylusPoints.Count-1];
-            if ((point-last).LengthSquared > 0.0001) current.Append(point);
+            if ((point-last).LengthSquared > 0.0001) AppendToolPoint(current, point);
         }
         private void Finish()
         {
-            LiveHighlighterStroke finished = current;
+            Stroke finished = current;
             current = null; pointer = 0;
             if (IsMouseCaptured) ReleaseMouseCapture();
             if (IsStylusCaptured) ReleaseStylusCapture();
@@ -211,6 +248,22 @@ namespace MinamotoBoard.Ink
             if (pointer != 2) return;
             foreach (StylusPoint point in e.GetStylusPoints(this)) Move((Point)point);
             Finish(); e.Handled = true;
+        }
+        public void NotifyPointerInput(bool touch) { if (touch) HideTouchCursor(); else ShowPointerCursor(); }
+        public static Stroke CreateToolStroke(Point point, DrawingToolOptions options, bool guided)
+        {
+            StylusPointCollection points = new StylusPointCollection(new[] { new StylusPoint(point.X, point.Y) });
+            DrawingAttributes attributes = options.Attributes();
+            // Guide coordinates already describe an exact line or arc; curve fitting can deform its ends.
+            if (guided) attributes.FitToCurve = false;
+            return options.Highlighter || options.Style == 1 ? new LiveHighlighterStroke(points, attributes, options.Style == 1) : new Stroke(points, attributes);
+        }
+        public static void AppendToolPoint(Stroke stroke, Point point)
+        {
+            Point last = (Point)stroke.StylusPoints[stroke.StylusPoints.Count - 1];
+            if ((point - last).LengthSquared <= 0.0001) return;
+            LiveHighlighterStroke custom = stroke as LiveHighlighterStroke;
+            if (custom != null) custom.Append(point); else stroke.StylusPoints.Add(new StylusPoint(point.X, point.Y));
         }
         private void HideTouchCursor() { if (!touchInput) { touchInput = true; UpdateHighlighterCursor(); } }
         private void ShowPointerCursor() { if (touchInput && !AreAnyTouchesCaptured) { touchInput = false; UpdateHighlighterCursor(); } }

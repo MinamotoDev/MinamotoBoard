@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization xmlns="http://wixtoolset.org/schemas/v4/wxl" Culture="zh-CN">
+  <String Id="BoardLanguage" Value="2052" />
+  <String Id="BoardLaunch" Value="启动" />
+  <String Id="BoardRemoveQuestion" Value="是否卸载 [ProductName]？" />
+  <String Id="BoardDeleteConfig" Value="删除配置和插件" />
+  <String Id="BoardDeleteConfigHelp" Value="删除当前用户文档和本地应用数据中的 MinamotoDev\Board 文件夹" />
+  <String Id="BoardNewerVersion" Value="已安装较新版本的 MinamotoBoard。" />
+  <String Id="BoardWindowsRequired" Value="MinamotoBoard 需要 64 位 Windows 10 22H2 或更高版本。" />
+  <String Id="BoardFrameworkRequired" Value="MinamotoBoard 需要 .NET Framework 4.8 或更高版本。" />
+</WixLocalization>

@@ -21,14 +21,22 @@ namespace MinamotoBoard.Ink
         private BoardTool tool;
         private bool active;
         private DrawingToolOptions options;
-        private int operation; // 1 move, 2 rotate/compass opening, 3 draw.
+        private BoardTool writingTool = BoardTool.Pen;
+        private Stroke liveStroke;
+        private int operation; // 1 move, 2 resize/rotate, 3 draw, 4 delete.
         private int pointer; // mouse=1, pen=2, touch=3.
         private TouchDevice touch;
-        private Point origin, previous, lineStart;
+        private Point origin, previous;
         private Point edgeA, edgeB;
-        private double lastAngle, swept;
+        private double lastAngle, arcStart, swept;
         private readonly List<Point> preview = new List<Point>();
         public event Action<StrokeCollection> InkCreated;
+        public event Action StateChanged;
+        public event Action DeleteRequested;
+        public event Action<bool> PointerInput;
+
+        public void SetWritingTool(BoardTool kind, DrawingToolOptions settings)
+        { writingTool = kind; options = settings; }
         public bool IsInteracting { get { return pointer != 0; } }
         public double Angle { get { return angle; } set { angle = value; InvalidateVisual(); } }
         public double Length { get { return length; } set { length = value; InvalidateVisual(); } }
@@ -40,12 +48,12 @@ namespace MinamotoBoard.Ink
             CancelInteraction();
             if (tool != kind) { SaveState(); tool = kind; LoadState(); }
             options = settings;
-            active = kind == BoardTool.Ruler || kind == BoardTool.SetSquare || kind == BoardTool.Compass;
+            active = InstrumentLayer.IsInstrument(kind);
+            triangle30 = kind == BoardTool.SetSquare30;
             IsHitTestVisible = active;
             if (!active) { InvalidateVisual(); return; }
             if (!positioned && ActualWidth > 0 && ActualHeight > 0) { center = new Point(ActualWidth / 2, ActualHeight / 2); positioned = true; }
-            center.X = Math.Max(30, Math.Min(Math.Max(30, ActualWidth - 30), center.X));
-            center.Y = Math.Max(30, Math.Min(Math.Max(30, ActualHeight - 100), center.Y));
+            if (ActualWidth > 0 && ActualHeight > 0) ClampCenter();
             InvalidateVisual();
         }
 
@@ -77,10 +85,12 @@ namespace MinamotoBoard.Ink
 
         public void CancelInteraction()
         {
-            pointer = 0; operation = 0; preview.Clear();
+            bool changed = pointer != 0;
+            pointer = 0; operation = 0; preview.Clear(); liveStroke = null;
             if (IsMouseCaptured) ReleaseMouseCapture();
             if (IsStylusCaptured) ReleaseStylusCapture();
             if (touch != null) { TouchDevice old = touch; touch = null; old.Capture(null); }
+            if (changed && StateChanged != null) StateChanged();
             InvalidateVisual();
         }
 
@@ -105,6 +115,14 @@ namespace MinamotoBoard.Ink
 
         private Point Handle { get { return tool == BoardTool.Ruler ? new Point(length / 2 + 24, 0) : new Point(176 * triangleScale, 110 * triangleScale); } }
 
+        private Point CompassHandle { get { return new Point(Math.Max(32, radius), 0); } }
+        private Point DeleteHandle { get { return tool == BoardTool.Compass ? new Point(radius / 2, -55) : tool == BoardTool.Ruler ? new Point(-length / 2 - 24, 0) : new Point(-156 * triangleScale, 110 * triangleScale); } }
+        private void ClampCenter()
+        {
+            center.X = Math.Max(30, Math.Min(Math.Max(30, ActualWidth - 30), center.X));
+            center.Y = Math.Max(30, Math.Min(Math.Max(30, ActualHeight - 100), center.Y));
+        }
+
         private static Point Project(Point p, Point a, Point b)
         {
             Vector ab = b - a;
@@ -128,9 +146,16 @@ namespace MinamotoBoard.Ink
         {
             if (!active) return null;
             Point p = Local(parameters.HitPoint);
+            // Painting and erasing must reach ink beneath the guides, including the compass center.
+            if (writingTool == BoardTool.Bucket || writingTool == BoardTool.Eraser)
+            {
+                bool control = (p - DeleteHandle).Length <= 16 || (p - (tool == BoardTool.Compass ? CompassHandle : Handle)).Length <= 16;
+                return control ? new PointHitTestResult(this, parameters.HitPoint) : null;
+            }
             bool hit = tool == BoardTool.Compass
-                ? (p - new Point(radius / 2, -55)).Length <= 16 || p.ToVector().Length <= 16 || (p - new Point(radius, 0)).Length <= 16 || Math.Abs(p.ToVector().Length - radius) <= 14
+                ? (p - new Point(radius / 2, -55)).Length <= 16 || p.ToVector().Length <= 16 || (p - CompassHandle).Length <= 16 || Math.Abs(p.ToVector().Length - radius) <= 14
                 : Body().FillContains(p) || Body().StrokeContains(new Pen(Brushes.Black, 24), p) || (p - Handle).Length <= 16;
+            hit = hit || (p - DeleteHandle).Length <= 16;
             return hit ? new PointHitTestResult(this, parameters.HitPoint) : null;
         }
 
@@ -150,9 +175,9 @@ namespace MinamotoBoard.Ink
                 dc.DrawEllipse(null, guide, new Point(), radius, radius);
                 dc.DrawLine(new Pen(Brushes.LightGray, 6), new Point(radius / 2, -55), new Point());
                 dc.DrawLine(new Pen(Brushes.LightGray, 6), new Point(radius / 2, -55), new Point(radius, 0));
-                dc.DrawEllipse(Brushes.White, outline, new Point(radius / 2, -55), 8, 8);
                 dc.DrawEllipse(Brushes.White, outline, new Point(), 8, 8);
-                dc.DrawEllipse(Brushes.DodgerBlue, outline, new Point(radius, 0), 10, 10);
+                if (radius < 32) dc.DrawLine(outline, new Point(radius, 0), CompassHandle);
+                dc.DrawEllipse(Brushes.DodgerBlue, outline, CompassHandle, 10, 10);
             }
             else
             {
@@ -163,7 +188,7 @@ namespace MinamotoBoard.Ink
                     Point a = vertices[edge], b = vertices[(edge + 1) % vertices.Length];
                     Vector direction = b - a; double distance = direction.Length; direction.Normalize();
                     Vector normal = new Vector(-direction.Y, direction.X);
-                    if (tool == BoardTool.SetSquare) normal = -normal;
+                    if (tool != BoardTool.Ruler) normal = -normal;
                     // Only visible ticks are visited, regardless of the instrument size.
                     Point[] corners = { Local(new Point(-20, -20)), Local(new Point(ActualWidth + 20, -20)), Local(new Point(-20, ActualHeight + 20)), Local(new Point(ActualWidth + 20, ActualHeight + 20)) };
                     double first = distance, last = 0;
@@ -179,28 +204,22 @@ namespace MinamotoBoard.Ink
                 dc.DrawLine(outline, tool == BoardTool.Ruler ? new Point(length / 2, 0) : vertices[1], Handle);
                 dc.DrawEllipse(Brushes.DodgerBlue, outline, Handle, 10, 10);
             }
+            Point delete = DeleteHandle;
+            if (tool != BoardTool.Compass) dc.DrawLine(outline, tool == BoardTool.Ruler ? new Point(-length / 2, 0) : Vertices()[0], delete);
+            dc.DrawEllipse(Brushes.IndianRed, outline, delete, 10, 10);
+            dc.DrawLine(outline, delete + new Vector(-3.5, -3.5), delete + new Vector(3.5, 3.5));
+            dc.DrawLine(outline, delete + new Vector(-3.5, 3.5), delete + new Vector(3.5, -3.5));
             dc.Pop(); dc.Pop();
-            if (preview.Count > 1)
-            {
-                StreamGeometry line = new StreamGeometry();
-                using (StreamGeometryContext context = line.Open())
-                {
-                    context.BeginFigure(preview[0], false, false);
-                    for (int i = 1; i < preview.Count; i++) context.LineTo(preview[i], true, false);
-                }
-                Pen pen = new Pen(new SolidColorBrush(options.Color), options.Width);
-                pen.StartLineCap = pen.EndLineCap = PenLineCap.Round;
-                if (options.Style == 1) pen.DashStyle = DashStyles.Dash;
-                dc.DrawGeometry(null, pen, line);
-            }
         }
 
         protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
         {
             base.OnRenderSizeChanged(sizeInfo);
             if (!active || pointer != 0) return;
-            center.X = Math.Max(30, Math.Min(Math.Max(30, ActualWidth - 30), center.X));
-            center.Y = Math.Max(30, Math.Min(Math.Max(30, ActualHeight - 100), center.Y));
+            if (!positioned && ActualWidth > 0 && ActualHeight > 0)
+            { center = new Point(ActualWidth / 2, ActualHeight / 2); positioned = true; }
+            ClampCenter();
+            if (StateChanged != null) StateChanged();
             InvalidateVisual();
         }
 
@@ -208,14 +227,17 @@ namespace MinamotoBoard.Ink
         {
             if (!active || pointer != 0) return false;
             pointer = kind; origin = p; previous = center; preview.Clear();
+            if (PointerInput != null) PointerInput(kind == 3);
             Point local = Local(p);
+            if ((local - DeleteHandle).Length <= 16) { operation = 4; InvalidateVisual(); return true; }
             if (tool == BoardTool.Compass)
             {
-                if ((local - new Point(radius, 0)).Length <= 16) operation = 2;
-                else if (local.ToVector().Length <= 16 || (local - new Point(radius / 2, -55)).Length <= 16) operation = 1;
+                if ((local - CompassHandle).Length <= 16) operation = 2;
+                else if (local.ToVector().Length <= 16) operation = 1;
                 else
                 {
                     operation = 3; swept = 0; lastAngle = Math.Atan2(p.Y - center.Y, p.X - center.X);
+                    arcStart = lastAngle;
                     preview.Add(center + new Vector(Math.Cos(lastAngle) * radius, Math.Sin(lastAngle) * radius));
                 }
             }
@@ -230,14 +252,20 @@ namespace MinamotoBoard.Ink
                     if (distance < best) { best = distance; edgeA = a; edgeB = b; }
                 }
                 operation = best <= 12 ? 3 : 1;
-                if (operation == 3) { lineStart = Project(local, edgeA, edgeB); preview.Add(World(lineStart)); preview.Add(World(lineStart)); }
+                if (operation == 3) preview.Add(World(Project(local, edgeA, edgeB)));
+            }
+            if (operation == 3 && writingTool != BoardTool.Pen && writingTool != BoardTool.Highlighter) { operation = 1; preview.Clear(); }
+            if (operation == 3 && preview.Count > 0)
+            {
+                liveStroke = HighlighterCanvas.CreateToolStroke(preview[0], options, true);
+                if (InkCreated != null) InkCreated(new StrokeCollection { liveStroke });
             }
             InvalidateVisual(); return true;
         }
 
         private void Move(Point p)
         {
-            if (pointer == 0) return;
+            if (pointer == 0 || operation == 4) return;
             if (operation == 1)
             {
                 center = previous + (p - origin);
@@ -254,79 +282,55 @@ namespace MinamotoBoard.Ink
             }
             else if (tool == BoardTool.Compass)
             {
-                if (preview.Count >= 3968)
-                    for (int i = preview.Count - 2; i > 0; i -= 2) preview.RemoveAt(i);
                 double current = Math.Atan2(p.Y - center.Y, p.X - center.X), delta = current - lastAngle;
                 while (delta > Math.PI) delta -= Math.PI * 2;
                 while (delta < -Math.PI) delta += Math.PI * 2;
                 double allowed = Math.Max(-Math.PI * 2, Math.Min(Math.PI * 2, swept + delta));
                 delta = allowed - swept;
+                lastAngle = current;
+                if (Math.Abs(delta) < 0.0000001) return;
                 int count = Math.Max(1, (int)Math.Min(128, Math.Ceiling(Math.Abs(delta) * Math.Max(radius, 30) / 3)));
                 for (int i = 1; i <= count; i++)
                 {
-                    double a = lastAngle + delta * i / count;
-                    preview.Add(center + new Vector(Math.Cos(a) * radius, Math.Sin(a) * radius));
+                    double a = arcStart + swept + delta * i / count;
+                    AddInkPoint(center + new Vector(Math.Cos(a) * radius, Math.Sin(a) * radius));
                 }
-                swept = allowed; lastAngle = current;
+                swept = allowed;
             }
-            else if (preview.Count > 1) preview[1] = World(Project(Local(p), edgeA, edgeB));
+            else if (operation == 3) AddInkPoint(World(Project(Local(p), edgeA, edgeB)));
             InvalidateVisual();
+        }
+
+        private void AddInkPoint(Point point)
+        {
+            if (liveStroke == null) return;
+            HighlighterCanvas.AppendToolPoint(liveStroke, point);
         }
 
         private void Finish(Point p)
         {
             Move(p);
-            if (operation == 3 && preview.Count > 1 && (tool == BoardTool.Compass ? Math.Abs(swept) * radius > 2 : (preview[1] - preview[0]).Length > 2))
-            {
-                StrokeCollection strokes = BuildStrokes(preview, options);
-                if (InkCreated != null) InkCreated(strokes);
-            }
+            bool delete = operation == 4 && (Local(p) - DeleteHandle).Length <= 16;
             CancelInteraction();
-        }
-
-        private static StrokeCollection BuildStrokes(List<Point> points, DrawingToolOptions settings)
-        {
-            StrokeCollection result = new StrokeCollection();
-            if (settings.Style != 1)
-            {
-                StylusPointCollection ink = new StylusPointCollection();
-                foreach (Point p in points) ink.Add(new StylusPoint(p.X, p.Y));
-                result.Add(new Stroke(ink, settings.Attributes())); return result;
-            }
-            // Real separated native strokes keep dashed geometry editable by InkCanvas's eraser.
-            double dash = Math.Max(8, settings.Width * 4), remaining = dash;
-            bool draw = true; StylusPointCollection run = new StylusPointCollection();
-            for (int i = 1; i < points.Count; i++)
-            {
-                Point current = points[i - 1]; Vector segment = points[i] - current; double distance = segment.Length;
-                if (distance < 0.01) continue;
-                segment.Normalize();
-                while (distance > 0.01)
-                {
-                    double step = Math.Min(distance, remaining); Point next = current + segment * step;
-                    if (draw) { if (run.Count == 0) run.Add(new StylusPoint(current.X, current.Y)); run.Add(new StylusPoint(next.X, next.Y)); }
-                    current = next; distance -= step; remaining -= step;
-                    if (remaining < 0.01)
-                    {
-                        if (draw && run.Count > 1) result.Add(new Stroke(run, settings.Attributes()));
-                        run = new StylusPointCollection(); draw = !draw; remaining = draw ? dash : dash / 2;
-                    }
-                }
-            }
-            if (run.Count > 1) result.Add(new Stroke(run, settings.Attributes()));
-            return result;
+            if (StateChanged != null) StateChanged();
+            if (delete && DeleteRequested != null) DeleteRequested();
         }
 
         protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
         { if (e.StylusDevice == null && Begin(e.GetPosition(this), 1)) { CaptureMouse(); e.Handled = true; } }
         protected override void OnMouseMove(MouseEventArgs e)
-        { if (pointer == 1) { Move(e.GetPosition(this)); e.Handled = true; } }
+        {
+            if (e.StylusDevice == null && PointerInput != null) PointerInput(false);
+            if (pointer == 1) { Move(e.GetPosition(this)); e.Handled = true; }
+        }
+        protected override void OnStylusInAirMove(StylusEventArgs e)
+        { if (e.StylusDevice.TabletDevice.Type == TabletDeviceType.Stylus && PointerInput != null) PointerInput(false); base.OnStylusInAirMove(e); }
         protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
         { if (pointer == 1) { Finish(e.GetPosition(this)); e.Handled = true; } }
         protected override void OnStylusDown(StylusDownEventArgs e)
         { if (e.StylusDevice.TabletDevice.Type == TabletDeviceType.Stylus && Begin(e.GetPosition(this), 2)) { CaptureStylus(); e.Handled = true; } }
         protected override void OnStylusMove(StylusEventArgs e)
-        { if (pointer == 2) { Move(e.GetPosition(this)); e.Handled = true; } }
+        { if (pointer == 2) { foreach (StylusPoint point in e.GetStylusPoints(this)) Move((Point)point); e.Handled = true; } }
         protected override void OnStylusUp(StylusEventArgs e)
         { if (pointer == 2) { Finish(e.GetPosition(this)); e.Handled = true; } }
         protected override void OnTouchDown(TouchEventArgs e)

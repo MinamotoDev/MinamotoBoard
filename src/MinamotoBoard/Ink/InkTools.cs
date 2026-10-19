@@ -8,6 +8,7 @@ namespace MinamotoBoard.Ink
     public sealed class InkTools
     {
         private readonly InkCanvas canvas;
+        private InkCanvasEditingMode eraserMode = InkCanvasEditingMode.EraseByPoint;
         public static readonly double[] PenWidths = { 2, 4, 6, 10, 16 };
         public static readonly double[] EraserWidths = { 16, 32, 64 };
 
@@ -18,7 +19,7 @@ namespace MinamotoBoard.Ink
             canvas.DefaultDrawingAttributes = new DrawingAttributes
             {
                 Color = Colors.White, Width = 4, Height = 4,
-                FitToCurve = false, IgnorePressure = true,
+                FitToCurve = true, IgnorePressure = true,
                 StylusTip = StylusTip.Ellipse
             };
             SetEraserWidth(32);
@@ -28,14 +29,17 @@ namespace MinamotoBoard.Ink
         public void UsePen()
         {
             canvas.EditingMode = InkCanvasEditingMode.Ink;
-            canvas.EditingModeInverted = InkCanvasEditingMode.EraseByPoint;
+            canvas.EditingModeInverted = eraserMode;
         }
 
         public void UseEraser()
         {
-            canvas.EditingMode = InkCanvasEditingMode.EraseByPoint;
-            canvas.EditingModeInverted = InkCanvasEditingMode.EraseByPoint;
+            canvas.EditingMode = eraserMode;
+            canvas.EditingModeInverted = eraserMode;
         }
+
+        public void SetEraserStyle(bool byStroke)
+        { eraserMode = byStroke ? InkCanvasEditingMode.EraseByStroke : InkCanvasEditingMode.EraseByPoint; }
 
         public void SetColor(Color color) { canvas.DefaultDrawingAttributes.Color = color; }
 

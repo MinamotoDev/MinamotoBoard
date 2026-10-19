@@ -1,8 +1,10 @@
+using MinamotoBoard.Localization;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using MinamotoBoard.PluginApi;
@@ -13,7 +15,9 @@ namespace MinamotoBoard.Plugins
     {
         public string RelativePath { get; internal set; }
         public string Name { get; internal set; }
-        public string Status { get; internal set; }
+        internal string StatusKey;
+        internal string StatusDetail;
+        public string Status { get { return Localizer.T(StatusKey ?? "") + StatusDetail; } }
         public bool Enabled { get; internal set; }
         internal IBoardPlugin Instance;
         internal PluginHost Host;
@@ -51,7 +55,7 @@ namespace MinamotoBoard.Plugins
                 Directory.CreateDirectory(PluginDirectory);
                 HashSet<string> disabled = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 // If settings cannot be read, fail closed instead of enabling disabled code.
-                if (File.Exists(settingsFile)) disabled.UnionWith(File.ReadAllLines(settingsFile));
+                if (File.Exists(settingsFile)) disabled.UnionWith(File.ReadAllLines(settingsFile, Encoding.UTF8));
                 List<string> directories = new List<string> { PluginDirectory };
                 directories.AddRange(Directory.GetDirectories(PluginDirectory).Where(
                     p => (File.GetAttributes(p) & FileAttributes.ReparsePoint) == 0));
@@ -61,7 +65,7 @@ namespace MinamotoBoard.Plugins
                     {
                         string relative = file.Substring(PluginDirectory.TrimEnd(Path.DirectorySeparatorChar).Length + 1);
                         records.Add(new PluginRecord { RelativePath = relative, Name = Path.GetFileName(file),
-                            Enabled = !disabled.Contains(relative), Status = disabled.Contains(relative) ? "已禁用" : "待加载" });
+                            Enabled = !disabled.Contains(relative), StatusKey = disabled.Contains(relative) ? "已禁用" : "待加载" });
                     }
                 }
             }
@@ -75,28 +79,28 @@ namespace MinamotoBoard.Plugins
             foreach (PluginRecord record in records)
             {
                 if (!record.Enabled) continue;
-                if (safeMode) { record.Status = "安全模式：未加载"; continue; }
+                if (safeMode) { record.StatusKey = "安全模式：未加载"; continue; }
                 try
                 {
                     Assembly assembly = Assembly.LoadFrom(Path.Combine(PluginDirectory, record.RelativePath));
                     Type[] types = assembly.GetExportedTypes().Where(t => typeof(IBoardPlugin).IsAssignableFrom(t)
                         && t.IsClass && !t.IsAbstract).ToArray();
-                    if (types.Length != 1) throw new InvalidOperationException("每个 Plugin.dll 必须提供一个公开的 IBoardPlugin 实现。");
+                    if (types.Length != 1) throw new InvalidOperationException(Localizer.T("每个 Plugin.dll 必须提供一个公开的 IBoardPlugin 实现。"));
                     IBoardPlugin plugin = (IBoardPlugin)Activator.CreateInstance(types[0]);
                     record.Instance = plugin;
-                    if (plugin.ApiVersion != 1) throw new InvalidOperationException("插件 API 版本不兼容（当前支持 1）。");
-                    if (string.IsNullOrWhiteSpace(plugin.Id)) throw new InvalidOperationException("插件 Id 不能为空。");
-                    if (!loadedIds.Add(plugin.Id)) throw new InvalidOperationException("插件 Id 重复：" + plugin.Id);
+                    if (plugin.ApiVersion != 1) throw new InvalidOperationException(Localizer.T("插件 API 版本不兼容（当前支持 1）。"));
+                    if (string.IsNullOrWhiteSpace(plugin.Id)) throw new InvalidOperationException(Localizer.T("插件 Id 不能为空。"));
+                    if (!loadedIds.Add(plugin.Id)) throw new InvalidOperationException(Localizer.T("插件 Id 重复：") + plugin.Id);
                     record.Name = plugin.Name;
                     record.Host = new PluginHost(window, canvas, toolbar, overlay,
-                        ex => record.Status = "工具执行失败：" + ex.Message);
+                        ex => { record.StatusKey = "工具执行失败："; record.StatusDetail = ex.Message; });
                     plugin.Initialize(record.Host);
-                    record.Status = "已加载";
+                    record.StatusKey = "已加载";
                 }
                 catch (Exception ex)
                 {
                     Release(record);
-                    record.Status = "加载失败：" + (ex.InnerException ?? ex).Message;
+                    record.StatusKey = "加载失败："; record.StatusDetail = (ex.InnerException ?? ex).Message;
                 }
             }
         }
@@ -109,7 +113,7 @@ namespace MinamotoBoard.Plugins
             string temporary = Path.Combine(directory, Guid.NewGuid().ToString("N") + ".tmp");
             try
             {
-                File.WriteAllLines(temporary, disabledPaths.Distinct(StringComparer.OrdinalIgnoreCase).ToArray());
+                File.WriteAllLines(temporary, disabledPaths.Distinct(StringComparer.OrdinalIgnoreCase).ToArray(), new UTF8Encoding(false));
                 if (File.Exists(settingsFile)) File.Replace(temporary, settingsFile, null);
                 else File.Move(temporary, settingsFile);
             }

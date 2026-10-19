@@ -40,7 +40,13 @@ namespace MinamotoBoard.Ink
             Color color = attributes.Color;
             return Encode(width, height, delegate(int x, int y)
             {
-                return x == 0 || y == 0 || x == width - 1 || y == height - 1 ? Colors.Transparent : color;
+                bool outside = x == 0 || y == 0 || x == width - 1 || y == height - 1;
+                if (attributes.StylusTip == StylusTip.Ellipse)
+                {
+                    double nx = (x + 0.5 - width / 2.0) / (nibWidth / 2.0), ny = (y + 0.5 - height / 2.0) / (nibHeight / 2.0);
+                    outside = outside || nx * nx + ny * ny > 1;
+                }
+                return outside ? Colors.Transparent : color;
             });
         }
 

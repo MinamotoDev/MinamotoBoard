@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
  <PropertyGroup>
+  <CodePage>65001</CodePage>
   <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
   <Platform Condition="'$(Platform)' == ''">x64</Platform>
   <ProjectGuid>{76C76A06-BFB9-4CA0-B9A5-56417BA86FD0}</ProjectGuid>

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -27,6 +28,7 @@ namespace MinamotoBoard.Ink
     public sealed class ToolPreferences
     {
         public BoardTool Selected;
+        public string Language;
         public double WindowWidth = 1280, WindowHeight = 720;
         public List<ToolPreference> Tools = new List<ToolPreference>();
         public List<InstrumentState> Instruments = new List<InstrumentState>();
@@ -51,7 +53,8 @@ namespace MinamotoBoard.Ink
                 string path = FilePath, temporary = path + ".tmp";
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
                 using (FileStream file = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None))
-                    new XmlSerializer(typeof(ToolPreferences)).Serialize(file, this);
+                using (XmlWriter writer = XmlWriter.Create(file, new XmlWriterSettings { Encoding = new UTF8Encoding(false), Indent = true }))
+                    new XmlSerializer(typeof(ToolPreferences)).Serialize(writer, this);
                 if (File.Exists(path)) File.Replace(temporary, path, null); else File.Move(temporary, path);
             }
             catch (Exception ex) { Trace.WriteLine(ex); }

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
+  <CodePage>65001</CodePage>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
     <ProjectGuid>{281A2EB6-B53B-4407-9386-54F96FD9DA25}</ProjectGuid>
@@ -36,12 +37,18 @@
     <Compile Include="UI\MainWindow.xaml.cs"><DependentUpon>MainWindow.xaml</DependentUpon></Compile>
     <Compile Include="UI\MainWindow.Tools.cs" />
     <Compile Include="UI\ToolbarIcons.cs" />
+    <Compile Include="Localization\Localizer.cs" />
+    <EmbeddedResource Include="Localization\zh-CN.xml"><LogicalName>MinamotoBoard.Localization.zh-CN.xml</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="Localization\zh-TW.xml"><LogicalName>MinamotoBoard.Localization.zh-TW.xml</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="Localization\ja-JP.xml"><LogicalName>MinamotoBoard.Localization.ja-JP.xml</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="Localization\en-US.xml"><LogicalName>MinamotoBoard.Localization.en-US.xml</LogicalName></EmbeddedResource>
     <Compile Include="Ink\InkTools.cs" />
     <Compile Include="Ink\DrawingToolOptions.cs" />
     <Compile Include="Ink\HighlighterCanvas.cs" />
     <Compile Include="Ink\HighlighterCursor.cs" />
     <Compile Include="Ink\ToolPreferences.cs" />
     <Compile Include="Ink\InstrumentOverlay.cs" />
+    <Compile Include="Ink\InstrumentLayer.cs" />
     <Compile Include="Ink\RegionFill.cs" />
     <Compile Include="Models\BoardDocument.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

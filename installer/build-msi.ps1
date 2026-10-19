@@ -1,5 +1,5 @@
 param(
-    [string]$AppSource = 'artifacts\release-0.5.0\app',
+    [string]$AppSource = 'artifacts\release-0.6.0\app',
     [string]$WixDll = 'artifacts\tools\wix5\tools\net6.0\any\wix.dll',
     [string]$WixUI = 'artifacts\tools\wix-ui5\wixext5\WixToolset.UI.wixext.dll'
 )
@@ -23,6 +23,6 @@ $taskMaintenance = Join-Path $taskOutput 'maintenance'
 $taskMsbuild = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe'
 & $taskMsbuild (Join-Path $PSScriptRoot 'MaintenanceBridge\MaintenanceBridge.csproj') /p:Configuration=Release "/p:OutputPath=$taskMaintenance\" /nologo /verbosity:minimal
 if ($LASTEXITCODE -ne 0) { throw 'MSI maintenance bridge build failed.' }
-& dotnet --roll-forward Major $taskWix build (Join-Path $PSScriptRoot 'MinamotoBoard.wxs') (Join-Path $PSScriptRoot 'InstallerUI.wxs') (Join-Path $PSScriptRoot 'StandardUI\VerifyReadyDlg.wxs') -ext $taskUI -culture zh-CN -arch x64 -d "AppSource=$taskApp" -d "DocSource=$taskRoot" -d "MaintenanceSource=$taskMaintenance" -intermediateFolder (Join-Path $taskOutput 'obj') -o (Join-Path $taskOutput 'MinamotoBoard.msi')
-if ($LASTEXITCODE -ne 0) { throw "MSI build failed: $LASTEXITCODE" }
+& (Join-Path $PSScriptRoot 'create-artwork.ps1') -OutputDirectory $taskMaintenance
+& (Join-Path $PSScriptRoot 'Localization\build-localization.ps1') -WixDll $taskWix -WixUI $taskUI -AppSource $taskApp -MaintenanceSource $taskMaintenance -OutputDirectory (Join-Path $taskOutput 'localization')
 Get-Item -LiteralPath (Join-Path $taskOutput 'MinamotoBoard.msi') | Select-Object FullName, Length

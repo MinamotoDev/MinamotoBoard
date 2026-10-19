@@ -1,0 +1,13 @@
+LIBRARY msi.dll
+EXPORTS
+ MsiGetActiveDatabase
+ MsiDatabaseOpenViewW
+ MsiViewExecute
+ MsiViewModify
+ MsiViewClose
+ MsiCloseHandle
+ MsiCreateRecord
+ MsiRecordSetStringW
+ MsiRecordSetInteger
+ MsiSetPropertyW
+ MsiViewFetch

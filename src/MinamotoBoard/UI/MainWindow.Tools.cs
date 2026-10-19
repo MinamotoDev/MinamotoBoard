@@ -1,3 +1,4 @@
+using MinamotoBoard.Localization;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -20,15 +21,17 @@ namespace MinamotoBoard.UI
         private readonly Dictionary<BoardTool, DrawingToolOptions> toolOptions = new Dictionary<BoardTool, DrawingToolOptions>();
         private readonly Dictionary<BoardTool, Button> toolButtons = new Dictionary<BoardTool, Button>();
         private BoardTool activeTool = BoardTool.Pen;
+        private BoardTool lastWritingTool = BoardTool.Pen;
         private Button previousPageButton, nextPageButton, addPageButton, settingsButton;
         private StrokeCollection watchedInk;
         private long inkRevision;
         private CancellationTokenSource fillWork;
         private ToolPreferences preferences;
+        private readonly Dictionary<int, Point> fillEraserPoints = new Dictionary<int, Point>();
 
         private void RestoreToolPreferences()
         {
-            preferences = ToolPreferences.Load();
+            // Preferences and language are loaded before the visual tree is created.
             if (preferences.Tools == null) preferences.Tools = new List<ToolPreference>();
             foreach (ToolPreference saved in preferences.Tools ?? new List<ToolPreference>())
             {
@@ -36,17 +39,18 @@ namespace MinamotoBoard.UI
                 if (saved == null || !toolOptions.TryGetValue(saved.Tool, out value)) continue;
                 try { value.Color = (Color)ColorConverter.ConvertFromString(saved.Color); } catch (Exception) { }
                 if (ToolPreferences.Finite(saved.Width)) value.Width = Math.Max(saved.Tool == BoardTool.Eraser ? 8 : 1, Math.Min(saved.Tool == BoardTool.Eraser ? 128 : 40, saved.Width));
-                value.Style = saved.Style == 1 && (saved.Tool == BoardTool.Ruler || saved.Tool == BoardTool.SetSquare || saved.Tool == BoardTool.Compass) ? 1 : 0;
+                value.Style = saved.Style == 1 && (saved.Tool == BoardTool.Pen || saved.Tool == BoardTool.Highlighter || saved.Tool == BoardTool.Eraser) ? 1 : 0;
             }
             Instruments.ImportStates(preferences.Instruments);
             if (ToolPreferences.Finite(preferences.WindowWidth)) Width = Math.Max(MinWidth, Math.Min(SystemParameters.VirtualScreenWidth, preferences.WindowWidth));
             if (ToolPreferences.Finite(preferences.WindowHeight)) Height = Math.Max(MinHeight, Math.Min(SystemParameters.VirtualScreenHeight, preferences.WindowHeight));
             SelectTool(BoardTool.Pen);
-            Loaded += delegate { SelectTool(toolOptions.ContainsKey(preferences.Selected) ? preferences.Selected : BoardTool.Pen); };
+            Loaded += delegate { SelectTool(toolOptions.ContainsKey(preferences.Selected) && !InstrumentLayer.IsInstrument(preferences.Selected) ? preferences.Selected : BoardTool.Pen); };
         }
 
         private void SaveToolPreferences()
         {
+            preferences.Language = Localizer.CurrentLanguage;
             preferences.Selected = activeTool;
             preferences.Instruments = Instruments.ExportStates();
             preferences.Tools.Clear();
@@ -57,23 +61,27 @@ namespace MinamotoBoard.UI
             preferences.Save();
         }
 
+        private readonly Dictionary<Button, string> buttonLabels = new Dictionary<Button, string>();
+
         private Button IconButton(FrameworkElement icon, string label, RoutedEventHandler click)
         {
-            Button button = new Button { Content = icon, ToolTip = label };
-            AutomationProperties.SetName(button, label); button.Click += click;
+            Button button = new Button { Content = icon, ToolTip = Localizer.T(label) };
+            buttonLabels.Add(button, label);
+            AutomationProperties.SetName(button, Localizer.T(label)); button.Click += click;
             ToolsPanel.Children.Add(button); return button;
         }
 
         private void BuildToolbar()
         {
-            foreach (BoardTool kind in new[] { BoardTool.Pen, BoardTool.Highlighter, BoardTool.Eraser, BoardTool.Ruler, BoardTool.SetSquare, BoardTool.Compass, BoardTool.Bucket })
+            foreach (BoardTool kind in new[] { BoardTool.Pen, BoardTool.Highlighter, BoardTool.Eraser, BoardTool.Ruler, BoardTool.SetSquare, BoardTool.SetSquare30, BoardTool.Compass, BoardTool.Bucket })
             {
                 BoardTool selected = kind;
                 toolOptions.Add(kind, new DrawingToolOptions { Width = kind == BoardTool.Eraser ? 32 : kind == BoardTool.Highlighter ? 20 : 4, Highlighter = kind == BoardTool.Highlighter, Color = kind == BoardTool.Highlighter ? Color.FromRgb(255, 213, 79) : Colors.White });
                 Button button = IconButton(ToolbarIcons.Tool(kind), ToolbarIcons.Name(kind), delegate { SelectTool(selected); });
                 toolButtons.Add(kind, button);
-                BindOptionsGesture(button, delegate { return selected; }, false);
+                if (!InstrumentLayer.IsInstrument(kind)) BindOptionsGesture(button, delegate { return selected; }, false);
             }
+            ToolbarLeft.Content = ToolbarIcons.Glyph("\uE76B"); ToolbarRight.Content = ToolbarIcons.Glyph("\uE76C");
             previousPageButton = IconButton(ToolbarIcons.Glyph("\uE760"), "上一页", OnPreviousPage);
             nextPageButton = IconButton(ToolbarIcons.Glyph("\uE761"), "下一页", OnNextPage);
             addPageButton = IconButton(ToolbarIcons.Glyph("\uE710"), "加页", OnAddPage);
@@ -88,51 +96,95 @@ namespace MinamotoBoard.UI
             {
                 if (e.StylusDevice != null) return;
                 if (activeTool == BoardTool.Bucket) { e.Handled = true; FillAt(e.GetPosition(Board)); }
-                else if (activeTool == BoardTool.Eraser) EraseFillAt(e.GetPosition(Board));
+                else if (activeTool == BoardTool.Eraser) EraseFillAt(e.GetPosition(Board), int.MinValue, true);
             };
             Board.PreviewMouseMove += delegate(object sender, MouseEventArgs e)
-            { if (e.StylusDevice == null && e.LeftButton == MouseButtonState.Pressed && activeTool == BoardTool.Eraser) EraseFillAt(e.GetPosition(Board)); };
+            { if (e.StylusDevice == null && e.LeftButton == MouseButtonState.Pressed && activeTool == BoardTool.Eraser) EraseFillAt(e.GetPosition(Board), int.MinValue, false); };
+            Board.PreviewMouseLeftButtonUp += delegate(object sender, MouseButtonEventArgs e)
+            {
+                if (e.StylusDevice != null) return;
+                if (activeTool == BoardTool.Eraser && fillEraserPoints.ContainsKey(int.MinValue)) EraseFillAt(e.GetPosition(Board), int.MinValue, false);
+                fillEraserPoints.Remove(int.MinValue);
+            };
+            Board.LostMouseCapture += delegate { fillEraserPoints.Remove(int.MinValue); };
             Board.PreviewStylusDown += delegate(object sender, StylusDownEventArgs e)
             {
                 if (activeTool == BoardTool.Bucket) { e.Handled = true; FillAt(e.GetPosition(Board)); }
                 else if (e.StylusDevice.TabletDevice.Type == TabletDeviceType.Stylus && (activeTool == BoardTool.Eraser || e.Inverted))
-                    EraseFillAt(e.GetPosition(Board));
+                    EraseFillAt(e.GetPosition(Board), -1 - e.StylusDevice.Id, true);
             };
             Board.PreviewStylusMove += delegate(object sender, StylusEventArgs e)
-            { if (!e.InAir && (activeTool == BoardTool.Eraser || e.Inverted)) EraseFillAt(e.GetPosition(Board)); };
+            {
+                if (e.StylusDevice.TabletDevice.Type != TabletDeviceType.Stylus || e.InAir || (activeTool != BoardTool.Eraser && !e.Inverted)) return;
+                foreach (StylusPoint point in e.GetStylusPoints(Board)) EraseFillAt((Point)point, -1 - e.StylusDevice.Id, false);
+            };
+            Board.PreviewStylusUp += delegate(object sender, StylusEventArgs e)
+            {
+                int pointer = -1 - e.StylusDevice.Id;
+                if (e.StylusDevice.TabletDevice.Type == TabletDeviceType.Stylus && fillEraserPoints.ContainsKey(pointer))
+                    foreach (StylusPoint point in e.GetStylusPoints(Board)) EraseFillAt((Point)point, pointer, false);
+                fillEraserPoints.Remove(pointer);
+            };
+            Board.LostStylusCapture += delegate(object sender, StylusEventArgs e) { fillEraserPoints.Remove(-1 - e.StylusDevice.Id); };
             Board.PreviewTouchDown += delegate(object sender, TouchEventArgs e)
             {
                 Point p = e.GetTouchPoint(Board).Position;
                 if (activeTool == BoardTool.Bucket) { e.Handled = true; FillAt(p); }
-                else if (activeTool == BoardTool.Eraser) EraseFillAt(p);
+                else if (activeTool == BoardTool.Eraser) EraseFillAt(p, e.TouchDevice.Id + 1, true);
             };
             Board.PreviewTouchMove += delegate(object sender, TouchEventArgs e)
-            { if (activeTool == BoardTool.Eraser) EraseFillAt(e.GetTouchPoint(Board).Position); };
+            {
+                if (activeTool != BoardTool.Eraser) return;
+                foreach (TouchPoint point in e.GetIntermediateTouchPoints(Board)) EraseFillAt(point.Position, e.TouchDevice.Id + 1, false);
+                EraseFillAt(e.GetTouchPoint(Board).Position, e.TouchDevice.Id + 1, false);
+            };
+            Board.PreviewTouchUp += delegate(object sender, TouchEventArgs e)
+            {
+                int pointer = e.TouchDevice.Id + 1;
+                if (activeTool == BoardTool.Eraser && fillEraserPoints.ContainsKey(pointer))
+                {
+                    foreach (TouchPoint point in e.GetIntermediateTouchPoints(Board)) EraseFillAt(point.Position, pointer, false);
+                    EraseFillAt(e.GetTouchPoint(Board).Position, pointer, false);
+                }
+                fillEraserPoints.Remove(pointer);
+            };
+            Board.LostTouchCapture += delegate(object sender, TouchEventArgs e) { fillEraserPoints.Remove(e.TouchDevice.Id + 1); };
             RestoreToolPreferences();
         }
 
         private void SelectTool(BoardTool kind)
         {
             if (IsWriting()) return;
+            fillEraserPoints.Clear();
+            if (InstrumentLayer.IsInstrument(kind))
+            {
+                if (activeTool != BoardTool.Pen && activeTool != BoardTool.Highlighter) SelectTool(lastWritingTool);
+                ToolOptionsPopup.IsOpen = false; Instruments.AddInstrument(kind); return;
+            }
+            if (kind == BoardTool.Pen || kind == BoardTool.Highlighter) lastWritingTool = kind;
             CancelToolWork(); ToolOptionsPopup.IsOpen = false; activeTool = kind;
             ApplyToolOptions();
             foreach (KeyValuePair<BoardTool, Button> pair in toolButtons)
                 pair.Value.Background = pair.Key == kind ? new SolidColorBrush(Color.FromRgb(216, 239, 222)) : Brushes.Transparent;
             ShowToolbarButton.Content = ToolbarIcons.Tool(kind);
-            AutomationProperties.SetName(ShowToolbarButton, "显示工具栏 · " + ToolbarIcons.Name(kind));
+            Label(ShowToolbarButton, Localizer.T("显示工具栏") + " · " + ToolbarIcons.Name(kind));
         }
 
         private void ApplyToolOptions()
         {
             DrawingToolOptions settings = toolOptions[activeTool];
+            tools.SetEraserStyle(toolOptions[BoardTool.Eraser].Style == 1);
+            tools.SetEraserWidth(toolOptions[BoardTool.Eraser].Width);
             Board.LiveHighlighter = activeTool == BoardTool.Highlighter;
+            Board.DashedInk = activeTool == BoardTool.Pen && settings.Style == 1;
+            Board.InkStyle = settings.Style;
             Board.EraserCursor = activeTool == BoardTool.Eraser;
             Board.EraserDiameter = toolOptions[BoardTool.Eraser].Width;
-            if (activeTool == BoardTool.Eraser) { tools.SetEraserWidth(settings.Width); tools.UseEraser(); }
+            if (activeTool == BoardTool.Eraser) tools.UseEraser();
             else if (activeTool == BoardTool.Bucket)
             { Board.EditingMode = InkCanvasEditingMode.None; Board.EditingModeInverted = InkCanvasEditingMode.None; }
             else { Board.DefaultDrawingAttributes = settings.Attributes(); tools.UsePen(); }
-            if (Board.LiveHighlighter) Board.EditingMode = InkCanvasEditingMode.None;
+            if (Board.LiveHighlighter || Board.DashedInk) Board.EditingMode = InkCanvasEditingMode.None;
             Board.UpdateHighlighterCursor();
             Instruments.Activate(activeTool, settings);
         }
@@ -149,7 +201,7 @@ namespace MinamotoBoard.UI
                 WrapPanel palette = new WrapPanel { Margin = new Thickness(0, 12, 0, 4) };
                 Color[] colors = { Colors.White, Color.FromRgb(255, 213, 79), Color.FromRgb(244, 67, 54),
                     Color.FromRgb(66, 165, 245), Color.FromRgb(76, 175, 80), Colors.Black };
-                string[] labels = { "白色", "黄色", "红色", "蓝色", "绿色", "黑色" };
+                string[] labels = { Localizer.T("白色"), Localizer.T("黄色"), Localizer.T("红色"), Localizer.T("蓝色"), Localizer.T("绿色"), Localizer.T("黑色") };
                 for (int i = 0; i < colors.Length; i++)
                 {
                     Color color = colors[i];
@@ -183,24 +235,16 @@ namespace MinamotoBoard.UI
                 ToolOptionsPanel.Children.Add(palette);
             }
             if (kind != BoardTool.Bucket)
-                AddSlider("粗细", kind == BoardTool.Eraser ? 8 : 1, kind == BoardTool.Eraser ? 128 : 40,
+                AddSlider(Localizer.T("粗细"), kind == BoardTool.Eraser ? 8 : 1, kind == BoardTool.Eraser ? 128 : 40,
                     settings.Width, delegate(double value) { settings.Width = value; ApplyToolOptions(); });
-            if (kind == BoardTool.Ruler || kind == BoardTool.SetSquare || kind == BoardTool.Compass)
+            if (kind == BoardTool.Pen || kind == BoardTool.Highlighter || kind == BoardTool.Eraser)
             {
-                ToolOptionsPanel.Children.Add(new TextBlock { Text = "样式", Margin = new Thickness(0, 10, 0, 4) });
-                ComboBox style = new ComboBox { ItemsSource = new[] { "实线", "虚线" },
+                ToolOptionsPanel.Children.Add(new TextBlock { Text = Localizer.T("样式"), Margin = new Thickness(0, 10, 0, 4) });
+                ComboBox style = new ComboBox { ItemsSource = kind == BoardTool.Eraser ? new[] { Localizer.T("按像素"), Localizer.T("按笔画") } : new[] { Localizer.T("实线"), Localizer.T("虚线") },
                     SelectedIndex = settings.Style, MinHeight = 36, VerticalContentAlignment = VerticalAlignment.Center, HorizontalContentAlignment = HorizontalAlignment.Left };
                 AlignOptions(style);
                 style.SelectionChanged += delegate { settings.Style = style.SelectedIndex; ApplyToolOptions(); };
                 ToolOptionsPanel.Children.Add(style);
-            }
-            if (kind == BoardTool.SetSquare)
-            {
-                ComboBox triangle = new ComboBox { ItemsSource = new[] { "45° 三角板", "30° / 60° 三角板" },
-                    SelectedIndex = Instruments.Triangle30 ? 1 : 0, MinHeight = 36, VerticalContentAlignment = VerticalAlignment.Center, HorizontalContentAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 12, 0, 0) };
-                AlignOptions(triangle);
-                triangle.SelectionChanged += delegate { Instruments.Triangle30 = triangle.SelectedIndex == 1; };
-                ToolOptionsPanel.Children.Add(triangle);
             }
             ToolOptionsPopup.PlacementTarget = source; ToolOptionsPopup.IsOpen = true;
         }
@@ -272,22 +316,40 @@ namespace MinamotoBoard.UI
 
         private void TrackInk()
         {
+            fillEraserPoints.Clear();
             if (watchedInk != null) watchedInk.StrokesChanged -= OnInkChanged;
             watchedInk = Board.Strokes; watchedInk.StrokesChanged += OnInkChanged; inkRevision++;
         }
         private void OnInkChanged(object sender, StrokeCollectionChangedEventArgs e) { inkRevision++; }
         private void CancelToolWork() { if (fillWork != null) fillWork.Cancel(); }
-        private void EraseFillAt(Point point)
+        private void EraseFillAt(Point point, int pointer, bool begin)
         {
-            List<Stroke> remove = new List<Stroke>();
+            Point previous;
+            if (begin || !fillEraserPoints.TryGetValue(pointer, out previous)) previous = point;
+            fillEraserPoints[pointer] = point;
+            DrawingToolOptions eraser = toolOptions[BoardTool.Eraser];
+            double radius = eraser.Width / 2;
+            Geometry area = (point - previous).LengthSquared < 0.0001
+                ? (Geometry)new EllipseGeometry(point, radius, radius)
+                : new LineGeometry(previous, point).GetWidenedPathGeometry(new Pen(Brushes.Black, eraser.Width)
+                    { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round });
+            List<RegionFillStroke> hits = new List<RegionFillStroke>();
             foreach (Stroke stroke in Board.Strokes)
             {
                 RegionFillStroke fill = stroke as RegionFillStroke;
-                double radius = toolOptions[BoardTool.Eraser].Width / 2;
-                if (fill != null && fill.Region.FillContainsWithDetail(new EllipseGeometry(point, radius, radius)) != IntersectionDetail.Empty)
-                    remove.Add(fill);
+                if (fill != null && fill.Region.Bounds.IntersectsWith(area.Bounds)
+                    && fill.Region.FillContainsWithDetail(area) != IntersectionDetail.Empty) hits.Add(fill);
             }
-            foreach (Stroke stroke in remove) Board.Strokes.Remove(stroke);
+            foreach (RegionFillStroke fill in hits)
+            {
+                if (eraser.Style == 1) { Board.Strokes.Remove(fill); continue; }
+                Geometry remainder = Geometry.Combine(fill.Region, area, GeometryCombineMode.Exclude, null, 0.05, ToleranceType.Absolute);
+                remainder.Freeze();
+                int index = Board.Strokes.IndexOf(fill);
+                Board.Strokes.Remove(fill);
+                foreach (Geometry part in RegionFill.SplitComponents(remainder))
+                    Board.Strokes.Insert(index++, new RegionFillStroke(part, fill.DrawingAttributes.Color));
+            }
         }
 
         private async void FillAt(Point point)
@@ -300,7 +362,7 @@ namespace MinamotoBoard.UI
                 RegionFillMask mask = RegionFill.Capture(target, Board.ActualWidth, Board.ActualHeight);
                 Geometry region = await Task.Run(() => RegionFill.Find(mask, point, work.Token));
                 if (work.IsCancellationRequested || !IsLoaded || target != Board.Strokes || revision != inkRevision) return;
-                if (region == null) { ShowToolHint("请选择封闭区域"); return; }
+                if (region == null) { ShowToolHint(Localizer.T("请选择封闭区域")); return; }
                 List<RegionFillStroke> old = new List<RegionFillStroke>();
                 foreach (Stroke stroke in target)
                 {
@@ -314,12 +376,13 @@ namespace MinamotoBoard.UI
                     remainder.Freeze();
                     int index = target.IndexOf(fill);
                     target.Remove(fill);
-                    if (remainder.GetArea() > 0.1) target.Insert(index, new RegionFillStroke(remainder, fill.DrawingAttributes.Color));
+                    foreach (Geometry part in RegionFill.SplitComponents(remainder))
+                        target.Insert(index++, new RegionFillStroke(part, fill.DrawingAttributes.Color));
                 }
                 target.Insert(0, new RegionFillStroke(region, color));
             }
             catch (OperationCanceledException) { }
-            catch (Exception) { if (IsLoaded) ShowToolHint("无法填充此区域"); }
+            catch (Exception) { if (IsLoaded) ShowToolHint(Localizer.T("无法填充此区域")); }
             finally { if (fillWork == work) fillWork = null; work.Dispose(); }
         }
 

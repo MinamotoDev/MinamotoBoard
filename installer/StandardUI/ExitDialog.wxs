@@ -1,0 +1,21 @@
+<!-- Copyright (c) .NET Foundation and contributors. All rights reserved. Licensed under the Microsoft Reciprocal License. See LICENSE.TXT file in the project root for full license information. -->
+<!-- WiX 5.0.2 completion dialog with a separate application launch button. -->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+ <Fragment>
+  <UI>
+   <Dialog Id="BoardExitDialog" Width="370" Height="270" Title="!(loc.ExitDialog_Title)">
+    <Control Id="Finish" Type="PushButton" X="304" Y="243" Width="56" Height="17" Default="yes" Cancel="yes" Text="!(loc.WixUIFinish)" />
+    <Control Id="Launch" Type="PushButton" X="236" Y="243" Width="56" Height="17" Text="!(loc.BoardLaunch)" Hidden="yes" ShowCondition="NOT (REMOVE~=&quot;ALL&quot;) AND NOT BOARD_REMOVE_RELATED" DisableCondition="BOARD_LAUNCHED=&quot;1&quot;">
+     <Publish Event="DoAction" Value="LaunchBoard" Order="1" Condition="NOT (REMOVE~=&quot;ALL&quot;) AND NOT BOARD_LAUNCHED" />
+     <Publish Property="BOARD_LAUNCHED" Value="1" Order="2" />
+    </Control>
+    <Control Id="Bitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="234" TabSkip="no" Text="!(loc.ExitDialogBitmap)" />
+    <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+    <Control Id="Description" Type="Text" X="135" Y="70" Width="220" Height="40" Transparent="yes" NoPrefix="yes" Text="!(loc.ExitDialogDescription)" />
+    <Control Id="Title" Type="Text" X="135" Y="20" Width="220" Height="60" Transparent="yes" NoPrefix="yes" Text="!(loc.ExitDialogTitle)" />
+   </Dialog>
+   <InstallUISequence><Show Dialog="BoardExitDialog" OnExit="success" /></InstallUISequence>
+   <AdminUISequence><Show Dialog="BoardExitDialog" OnExit="success" /></AdminUISequence>
+  </UI>
+ </Fragment>
+</Wix>
