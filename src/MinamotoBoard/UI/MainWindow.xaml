@@ -28,7 +28,7 @@
   </Style>
  </Window.Resources>
  <Grid x:Name="RootLayout" SizeChanged="OnBoardSizeChanged">
-  <InkCanvas x:Name="Board" Background="#236B45" ClipToBounds="True" Focusable="True" />
+  <ink:HighlighterCanvas x:Name="Board" Background="#236B45" ClipToBounds="True" Focusable="True" />
   <Grid x:Name="PluginOverlay" ClipToBounds="True" />
   <ink:InstrumentOverlay x:Name="Instruments" ClipToBounds="True" IsHitTestVisible="False" />
   <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="12">

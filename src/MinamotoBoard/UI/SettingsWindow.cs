@@ -82,11 +82,11 @@ namespace MinamotoBoard.UI
         private UIElement CreateAboutPage()
         {
             StackPanel layout = new StackPanel { Margin = new Thickness(20) };
-            layout.Children.Add(new TextBlock { Text = "MinamotoBoard", FontSize = 22,
+            layout.Children.Add(new TextBlock { Text = "MinamotoBoard " + typeof(SettingsWindow).Assembly.GetName().Version.ToString(3), FontSize = 22,
                 FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 16) });
             const string repository = "https://github.com/MinamotoDev/MinamotoBoard";
             DockPanel project = new DockPanel { Margin = new Thickness(0, 0, 0, 24) };
-            Button github = new Button { Content = GitHubMark(), Width = 48, Height = 48,
+            Button github = new Button { Content = GitHubMark(), Width = 56, Height = 56,
                 Background = Brushes.Transparent, BorderThickness = new Thickness(0),
                 Cursor = System.Windows.Input.Cursors.Hand, ToolTip = repository };
             FrameworkElementFactory surface = new FrameworkElementFactory(typeof(Border));
@@ -99,12 +99,12 @@ namespace MinamotoBoard.UI
             System.Windows.Automation.AutomationProperties.SetName(github, "访问 GitHub 项目");
             github.Click += delegate { OpenLink(repository); };
             DockPanel.SetDock(github, Dock.Left); project.Children.Add(github);
-            TextBlock projectLink = new TextBlock { TextWrapping = TextWrapping.Wrap,
-                VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) };
-            projectLink.Inlines.Add(CreateLink(repository, repository));
+            TextBlock projectLink = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 16,
+                VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(14, 0, 0, 0) };
+            projectLink.Inlines.Add(CreateLink("MinamotoDev/MinamotoBoard", repository));
             project.Children.Add(projectLink);
             layout.Children.Add(project);
-            layout.Children.Add(new TextBlock { Text = "维护人员", FontSize = 16,
+            layout.Children.Add(new TextBlock { Text = "贡献者", FontSize = 16,
                 FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 12) });
             layout.Children.Add(Maintainer("MinamotoDev", "MinamotoDev.png", "https://github.com/MinamotoDev"));
             layout.Children.Add(Maintainer("丹羽　空", "NiwaSora.jpg", null));
@@ -143,7 +143,7 @@ namespace MinamotoBoard.UI
                 Geometry geometry = Geometry.Parse(reader.ReadToEnd());
                 geometry.Freeze();
                 return new System.Windows.Shapes.Path { Data = geometry, Fill = Brushes.Black,
-                    Width = 32, Height = 32, Stretch = Stretch.Uniform };
+                    Width = 56, Height = 56, Stretch = Stretch.Uniform };
             }
         }
 

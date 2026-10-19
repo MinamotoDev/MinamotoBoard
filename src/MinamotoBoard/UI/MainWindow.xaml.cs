@@ -36,7 +36,7 @@ namespace MinamotoBoard.UI
             BuildToolbar(); UpdatePageControls(); TrackInk();
             Instruments.InkCreated += delegate(System.Windows.Ink.StrokeCollection strokes) { Board.Strokes.Add(strokes); };
             SetFullscreen(true);
-            Closed += delegate { CancelToolWork(); Instruments.CancelInteraction(); };
+            Closed += delegate { SaveToolPreferences(); CancelToolWork(); Instruments.CancelInteraction(); };
 #if !NO_PLUGINS
             settingsButton.IsEnabled = false;
             ContentRendered += OnFirstRendered;

@@ -13,6 +13,7 @@ namespace MinamotoBoard.UI
             switch (tool)
             {
                 case BoardTool.Pen: return Glyph("\uE70F");
+                case BoardTool.Highlighter: return Vector("M5,18 L16,3 25,10 14,24 Z M5,18 L14,24 9,27 2,22 Z M2,27 H12");
                 case BoardTool.Eraser: return Glyph("\uE75C");
                 case BoardTool.Ruler: return Vector("M3,8 L25,8 25,20 3,20 Z M7,8 V14 M11,8 V12 M15,8 V14 M19,8 V12 M23,8 V14");
                 case BoardTool.SetSquare: return Vector("M3,3 L25,25 3,25 Z M8,14 L14,20 8,20 Z M3,9 H6 M3,15 H6 M3,21 H6");
@@ -41,6 +42,7 @@ namespace MinamotoBoard.UI
             switch (tool)
             {
                 case BoardTool.Pen: return "画笔";
+                case BoardTool.Highlighter: return "荧光笔";
                 case BoardTool.Eraser: return "橡皮";
                 case BoardTool.Ruler: return "直尺";
                 case BoardTool.SetSquare: return "三角板";

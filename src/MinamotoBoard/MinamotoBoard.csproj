@@ -26,6 +26,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -37,6 +38,9 @@
     <Compile Include="UI\ToolbarIcons.cs" />
     <Compile Include="Ink\InkTools.cs" />
     <Compile Include="Ink\DrawingToolOptions.cs" />
+    <Compile Include="Ink\HighlighterCanvas.cs" />
+    <Compile Include="Ink\HighlighterCursor.cs" />
+    <Compile Include="Ink\ToolPreferences.cs" />
     <Compile Include="Ink\InstrumentOverlay.cs" />
     <Compile Include="Ink\RegionFill.cs" />
     <Compile Include="Models\BoardDocument.cs" />

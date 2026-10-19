@@ -24,6 +24,38 @@ namespace MinamotoBoard.UI
         private StrokeCollection watchedInk;
         private long inkRevision;
         private CancellationTokenSource fillWork;
+        private ToolPreferences preferences;
+
+        private void RestoreToolPreferences()
+        {
+            preferences = ToolPreferences.Load();
+            if (preferences.Tools == null) preferences.Tools = new List<ToolPreference>();
+            foreach (ToolPreference saved in preferences.Tools ?? new List<ToolPreference>())
+            {
+                DrawingToolOptions value;
+                if (saved == null || !toolOptions.TryGetValue(saved.Tool, out value)) continue;
+                try { value.Color = (Color)ColorConverter.ConvertFromString(saved.Color); } catch (Exception) { }
+                if (ToolPreferences.Finite(saved.Width)) value.Width = Math.Max(saved.Tool == BoardTool.Eraser ? 8 : 1, Math.Min(saved.Tool == BoardTool.Eraser ? 128 : 40, saved.Width));
+                value.Style = saved.Style == 1 && (saved.Tool == BoardTool.Ruler || saved.Tool == BoardTool.SetSquare || saved.Tool == BoardTool.Compass) ? 1 : 0;
+            }
+            Instruments.ImportStates(preferences.Instruments);
+            if (ToolPreferences.Finite(preferences.WindowWidth)) Width = Math.Max(MinWidth, Math.Min(SystemParameters.VirtualScreenWidth, preferences.WindowWidth));
+            if (ToolPreferences.Finite(preferences.WindowHeight)) Height = Math.Max(MinHeight, Math.Min(SystemParameters.VirtualScreenHeight, preferences.WindowHeight));
+            SelectTool(BoardTool.Pen);
+            Loaded += delegate { SelectTool(toolOptions.ContainsKey(preferences.Selected) ? preferences.Selected : BoardTool.Pen); };
+        }
+
+        private void SaveToolPreferences()
+        {
+            preferences.Selected = activeTool;
+            preferences.Instruments = Instruments.ExportStates();
+            preferences.Tools.Clear();
+            foreach (KeyValuePair<BoardTool, DrawingToolOptions> pair in toolOptions)
+                preferences.Tools.Add(new ToolPreference { Tool = pair.Key, Color = pair.Value.Color.ToString(), Width = pair.Value.Width, Style = pair.Value.Style });
+            Rect bounds = RestoreBounds;
+            if (!bounds.IsEmpty) { preferences.WindowWidth = bounds.Width; preferences.WindowHeight = bounds.Height; }
+            preferences.Save();
+        }
 
         private Button IconButton(FrameworkElement icon, string label, RoutedEventHandler click)
         {
@@ -34,10 +66,10 @@ namespace MinamotoBoard.UI
 
         private void BuildToolbar()
         {
-            foreach (BoardTool kind in Enum.GetValues(typeof(BoardTool)))
+            foreach (BoardTool kind in new[] { BoardTool.Pen, BoardTool.Highlighter, BoardTool.Eraser, BoardTool.Ruler, BoardTool.SetSquare, BoardTool.Compass, BoardTool.Bucket })
             {
                 BoardTool selected = kind;
-                toolOptions.Add(kind, new DrawingToolOptions { Width = kind == BoardTool.Eraser ? 32 : 4 });
+                toolOptions.Add(kind, new DrawingToolOptions { Width = kind == BoardTool.Eraser ? 32 : kind == BoardTool.Highlighter ? 20 : 4, Highlighter = kind == BoardTool.Highlighter, Color = kind == BoardTool.Highlighter ? Color.FromRgb(255, 213, 79) : Colors.White });
                 Button button = IconButton(ToolbarIcons.Tool(kind), ToolbarIcons.Name(kind), delegate { SelectTool(selected); });
                 toolButtons.Add(kind, button);
                 BindOptionsGesture(button, delegate { return selected; }, false);
@@ -76,7 +108,7 @@ namespace MinamotoBoard.UI
             };
             Board.PreviewTouchMove += delegate(object sender, TouchEventArgs e)
             { if (activeTool == BoardTool.Eraser) EraseFillAt(e.GetTouchPoint(Board).Position); };
-            SelectTool(BoardTool.Pen);
+            RestoreToolPreferences();
         }
 
         private void SelectTool(BoardTool kind)
@@ -93,10 +125,15 @@ namespace MinamotoBoard.UI
         private void ApplyToolOptions()
         {
             DrawingToolOptions settings = toolOptions[activeTool];
+            Board.LiveHighlighter = activeTool == BoardTool.Highlighter;
+            Board.EraserCursor = activeTool == BoardTool.Eraser;
+            Board.EraserDiameter = toolOptions[BoardTool.Eraser].Width;
             if (activeTool == BoardTool.Eraser) { tools.SetEraserWidth(settings.Width); tools.UseEraser(); }
             else if (activeTool == BoardTool.Bucket)
             { Board.EditingMode = InkCanvasEditingMode.None; Board.EditingModeInverted = InkCanvasEditingMode.None; }
             else { Board.DefaultDrawingAttributes = settings.Attributes(); tools.UsePen(); }
+            if (Board.LiveHighlighter) Board.EditingMode = InkCanvasEditingMode.None;
+            Board.UpdateHighlighterCursor();
             Instruments.Activate(activeTool, settings);
         }
 
@@ -116,9 +153,29 @@ namespace MinamotoBoard.UI
                 for (int i = 0; i < colors.Length; i++)
                 {
                     Color color = colors[i];
-                    RadioButton choice = new RadioButton { Content = new Ellipse { Width = 24, Height = 24,
-                        Fill = new SolidColorBrush(color), Stroke = Brushes.Gray, StrokeThickness = 1 },
-                        IsChecked = settings.Color == color, GroupName = "ToolPalette", Margin = new Thickness(0, 0, 10, 6), ToolTip = labels[i] };
+                    RadioButton choice = new RadioButton { Width = 36, Height = 36,
+                        Content = new Ellipse { Width = 24, Height = 24, Fill = new SolidColorBrush(color), Stroke = Brushes.Gray, StrokeThickness = 1 },
+                        IsChecked = settings.Color == color, GroupName = "ToolPalette", Margin = new Thickness(0, 0, 6, 6), ToolTip = labels[i] };
+                    FrameworkElementFactory ring = new FrameworkElementFactory(typeof(Border));
+                    ring.Name = "SelectionRing";
+                    ring.SetValue(Border.CornerRadiusProperty, new CornerRadius(18));
+                    ring.SetValue(Border.BorderThicknessProperty, new Thickness(2));
+                    ring.SetValue(Border.BorderBrushProperty, Brushes.Transparent);
+                    ring.SetValue(Border.BackgroundProperty, Brushes.Transparent);
+                    FrameworkElementFactory swatch = new FrameworkElementFactory(typeof(ContentPresenter));
+                    swatch.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+                    swatch.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+                    ring.AppendChild(swatch);
+                    ControlTemplate template = new ControlTemplate(typeof(RadioButton)) { VisualTree = ring };
+                    Trigger selected = new Trigger { Property = ToggleButton.IsCheckedProperty, Value = true };
+                    selected.Setters.Add(new Setter(Border.BorderBrushProperty, Brushes.DodgerBlue, "SelectionRing"));
+                    template.Triggers.Add(selected);
+                    Trigger hover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
+                    hover.Setters.Add(new Setter(Border.BackgroundProperty, new SolidColorBrush(Color.FromRgb(225, 235, 241)), "SelectionRing"));
+                    template.Triggers.Add(hover);
+                    Trigger focus = new Trigger { Property = UIElement.IsKeyboardFocusedProperty, Value = true };
+                    focus.Setters.Add(new Setter(Border.BackgroundProperty, new SolidColorBrush(Color.FromRgb(225, 235, 241)), "SelectionRing"));
+                    template.Triggers.Add(focus); choice.Template = template;
                     AutomationProperties.SetName(choice, labels[i]);
                     choice.Checked += delegate { settings.Color = color; ApplyToolOptions(); };
                     palette.Children.Add(choice);
@@ -128,26 +185,33 @@ namespace MinamotoBoard.UI
             if (kind != BoardTool.Bucket)
                 AddSlider("粗细", kind == BoardTool.Eraser ? 8 : 1, kind == BoardTool.Eraser ? 128 : 40,
                     settings.Width, delegate(double value) { settings.Width = value; ApplyToolOptions(); });
-            if (kind != BoardTool.Bucket && kind != BoardTool.Eraser)
+            if (kind == BoardTool.Ruler || kind == BoardTool.SetSquare || kind == BoardTool.Compass)
             {
                 ToolOptionsPanel.Children.Add(new TextBlock { Text = "样式", Margin = new Thickness(0, 10, 0, 4) });
-                ComboBox style = new ComboBox { ItemsSource = kind == BoardTool.Pen ? new[] { "圆头", "方头" } : new[] { "实线", "虚线" },
-                    SelectedIndex = settings.Style, MinHeight = 36 };
+                ComboBox style = new ComboBox { ItemsSource = new[] { "实线", "虚线" },
+                    SelectedIndex = settings.Style, MinHeight = 36, VerticalContentAlignment = VerticalAlignment.Center, HorizontalContentAlignment = HorizontalAlignment.Left };
+                AlignOptions(style);
                 style.SelectionChanged += delegate { settings.Style = style.SelectedIndex; ApplyToolOptions(); };
                 ToolOptionsPanel.Children.Add(style);
             }
-            if (kind == BoardTool.Ruler) AddSlider("长度", 160, 640, Instruments.Length, delegate(double value) { Instruments.Length = value; });
-            if (kind == BoardTool.Compass) AddSlider("半径", 20, 400, Instruments.Radius, delegate(double value) { Instruments.Radius = value; });
-            if (kind == BoardTool.Ruler || kind == BoardTool.SetSquare)
-                AddSlider("角度", -180, 180, Instruments.Angle, delegate(double value) { Instruments.Angle = value; });
             if (kind == BoardTool.SetSquare)
             {
                 ComboBox triangle = new ComboBox { ItemsSource = new[] { "45° 三角板", "30° / 60° 三角板" },
-                    SelectedIndex = Instruments.Triangle30 ? 1 : 0, MinHeight = 36, Margin = new Thickness(0, 12, 0, 0) };
+                    SelectedIndex = Instruments.Triangle30 ? 1 : 0, MinHeight = 36, VerticalContentAlignment = VerticalAlignment.Center, HorizontalContentAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 12, 0, 0) };
+                AlignOptions(triangle);
                 triangle.SelectionChanged += delegate { Instruments.Triangle30 = triangle.SelectedIndex == 1; };
                 ToolOptionsPanel.Children.Add(triangle);
             }
             ToolOptionsPopup.PlacementTarget = source; ToolOptionsPopup.IsOpen = true;
+        }
+
+        private static void AlignOptions(ComboBox combo)
+        {
+            Style item = new Style(typeof(ComboBoxItem));
+            item.Setters.Add(new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center));
+            item.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Left));
+            item.Setters.Add(new Setter(Control.MinHeightProperty, 32.0));
+            combo.ItemContainerStyle = item;
         }
 
         private void AddSlider(string name, double min, double max, double value, Action<double> change)

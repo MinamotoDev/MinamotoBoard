@@ -13,7 +13,10 @@ namespace MinamotoBoard.Ink
         private Point center;
         private double angle;
         private double radius = 110;
-        private double length = 360;
+        private double length = 640;
+        private double triangleScale = 1;
+        private bool positioned;
+        private readonly Dictionary<BoardTool, InstrumentState> states = new Dictionary<BoardTool, InstrumentState>();
         private bool triangle30;
         private BoardTool tool;
         private bool active;
@@ -34,14 +37,42 @@ namespace MinamotoBoard.Ink
 
         public void Activate(BoardTool kind, DrawingToolOptions settings)
         {
-            CancelInteraction(); tool = kind; options = settings;
+            CancelInteraction();
+            if (tool != kind) { SaveState(); tool = kind; LoadState(); }
+            options = settings;
             active = kind == BoardTool.Ruler || kind == BoardTool.SetSquare || kind == BoardTool.Compass;
             IsHitTestVisible = active;
             if (!active) { InvalidateVisual(); return; }
-            if (center == new Point()) center = new Point(Math.Max(240, ActualWidth / 2), Math.Max(220, ActualHeight / 2));
+            if (!positioned && ActualWidth > 0 && ActualHeight > 0) { center = new Point(ActualWidth / 2, ActualHeight / 2); positioned = true; }
             center.X = Math.Max(30, Math.Min(Math.Max(30, ActualWidth - 30), center.X));
             center.Y = Math.Max(30, Math.Min(Math.Max(30, ActualHeight - 100), center.Y));
             InvalidateVisual();
+        }
+
+        private void SaveState()
+        {
+            if (!active) return;
+            states[tool] = new InstrumentState { Tool = tool, Positioned = positioned, X = center.X, Y = center.Y,
+                Angle = angle, Length = length, Scale = triangleScale, Radius = radius, Triangle30 = triangle30 };
+        }
+        private void LoadState()
+        {
+            InstrumentState state;
+            if (!states.TryGetValue(tool, out state)) state = new InstrumentState { Tool = tool };
+            positioned = state.Positioned; center = new Point(state.X, state.Y); angle = state.Angle;
+            length = state.Length; triangleScale = state.Scale; radius = state.Radius; triangle30 = state.Triangle30;
+        }
+        public List<InstrumentState> ExportStates() { SaveState(); return new List<InstrumentState>(states.Values); }
+        public void ImportStates(List<InstrumentState> saved)
+        {
+            if (saved == null) return;
+            foreach (InstrumentState state in saved)
+            {
+                if (state == null || !ToolPreferences.Finite(state.X) || !ToolPreferences.Finite(state.Y) || !ToolPreferences.Finite(state.Angle)
+                    || !ToolPreferences.Finite(state.Length) || !ToolPreferences.Finite(state.Scale) || !ToolPreferences.Finite(state.Radius)) continue;
+                state.Length = Math.Max(640, state.Length); state.Scale = Math.Max(1, state.Scale); state.Radius = Math.Max(0, state.Radius);
+                states[state.Tool] = state;
+            }
         }
 
         public void CancelInteraction()
@@ -69,10 +100,10 @@ namespace MinamotoBoard.Ink
         private Point[] Vertices()
         {
             if (tool == BoardTool.Ruler) return new[] { new Point(-length / 2, -25), new Point(length / 2, -25), new Point(length / 2, 25), new Point(-length / 2, 25) };
-            return new[] { new Point(-130, 110), new Point(150, 110), new Point(-130, triangle30 ? -52 : -170) };
+            return new[] { new Point(-130 * triangleScale, 110 * triangleScale), new Point(150 * triangleScale, 110 * triangleScale), new Point(-130 * triangleScale, (triangle30 ? -52 : -170) * triangleScale) };
         }
 
-        private Point Handle { get { return tool == BoardTool.Ruler ? new Point(length / 2 + 24, 0) : new Point(176, 110); } }
+        private Point Handle { get { return tool == BoardTool.Ruler ? new Point(length / 2 + 24, 0) : new Point(176 * triangleScale, 110 * triangleScale); } }
 
         private static Point Project(Point p, Point a, Point b)
         {
@@ -98,7 +129,7 @@ namespace MinamotoBoard.Ink
             if (!active) return null;
             Point p = Local(parameters.HitPoint);
             bool hit = tool == BoardTool.Compass
-                ? p.ToVector().Length <= 16 || (p - new Point(radius, 0)).Length <= 16 || Math.Abs(p.ToVector().Length - radius) <= 14
+                ? (p - new Point(radius / 2, -55)).Length <= 16 || p.ToVector().Length <= 16 || (p - new Point(radius, 0)).Length <= 16 || Math.Abs(p.ToVector().Length - radius) <= 14
                 : Body().FillContains(p) || Body().StrokeContains(new Pen(Brushes.Black, 24), p) || (p - Handle).Length <= 16;
             return hit ? new PointHitTestResult(this, parameters.HitPoint) : null;
         }
@@ -119,6 +150,7 @@ namespace MinamotoBoard.Ink
                 dc.DrawEllipse(null, guide, new Point(), radius, radius);
                 dc.DrawLine(new Pen(Brushes.LightGray, 6), new Point(radius / 2, -55), new Point());
                 dc.DrawLine(new Pen(Brushes.LightGray, 6), new Point(radius / 2, -55), new Point(radius, 0));
+                dc.DrawEllipse(Brushes.White, outline, new Point(radius / 2, -55), 8, 8);
                 dc.DrawEllipse(Brushes.White, outline, new Point(), 8, 8);
                 dc.DrawEllipse(Brushes.DodgerBlue, outline, new Point(radius, 0), 10, 10);
             }
@@ -132,7 +164,13 @@ namespace MinamotoBoard.Ink
                     Vector direction = b - a; double distance = direction.Length; direction.Normalize();
                     Vector normal = new Vector(-direction.Y, direction.X);
                     if (tool == BoardTool.SetSquare) normal = -normal;
-                    for (int tick = 1; tick < distance / 10; tick++)
+                    // Only visible ticks are visited, regardless of the instrument size.
+                    Point[] corners = { Local(new Point(-20, -20)), Local(new Point(ActualWidth + 20, -20)), Local(new Point(-20, ActualHeight + 20)), Local(new Point(ActualWidth + 20, ActualHeight + 20)) };
+                    double first = distance, last = 0;
+                    foreach (Point corner in corners) { double d = Vector.Multiply(corner - a, direction); first = Math.Min(first, d); last = Math.Max(last, d); }
+                    double beginTick = Math.Max(1, Math.Floor(first / 10));
+                    double endTick = Math.Min(distance / 10, Math.Ceiling(last / 10));
+                    for (double tick = beginTick; tick < endTick; tick++)
                     {
                         Point start = a + direction * (tick * 10);
                         dc.DrawLine(outline, start, start + normal * (tick % 5 == 0 ? 14 : 7));
@@ -173,8 +211,8 @@ namespace MinamotoBoard.Ink
             Point local = Local(p);
             if (tool == BoardTool.Compass)
             {
-                if (local.ToVector().Length <= 16) operation = 1;
-                else if ((local - new Point(radius, 0)).Length <= 16) operation = 2;
+                if ((local - new Point(radius, 0)).Length <= 16) operation = 2;
+                else if (local.ToVector().Length <= 16 || (local - new Point(radius / 2, -55)).Length <= 16) operation = 1;
                 else
                 {
                     operation = 3; swept = 0; lastAngle = Math.Atan2(p.Y - center.Y, p.X - center.X);
@@ -209,18 +247,21 @@ namespace MinamotoBoard.Ink
             else if (operation == 2)
             {
                 double worldAngle = Math.Atan2(p.Y - center.Y, p.X - center.X) * 180 / Math.PI;
-                if (tool == BoardTool.Compass) { radius = Math.Max(20, Math.Min(500, (p - center).Length)); angle = worldAngle; }
-                else angle = worldAngle - Math.Atan2(Handle.Y, Handle.X) * 180 / Math.PI;
+                double distance = (p - center).Length;
+                if (tool == BoardTool.Compass) { radius = distance; angle = worldAngle; }
+                else if (tool == BoardTool.Ruler) { length = Math.Max(640, (distance - 24) * 2); angle = worldAngle; }
+                else { triangleScale = Math.Max(1, distance / Math.Sqrt(176 * 176 + 110 * 110)); angle = worldAngle - Math.Atan2(110, 176) * 180 / Math.PI; }
             }
             else if (tool == BoardTool.Compass)
             {
-                if (preview.Count >= 4096) return;
+                if (preview.Count >= 3968)
+                    for (int i = preview.Count - 2; i > 0; i -= 2) preview.RemoveAt(i);
                 double current = Math.Atan2(p.Y - center.Y, p.X - center.X), delta = current - lastAngle;
                 while (delta > Math.PI) delta -= Math.PI * 2;
                 while (delta < -Math.PI) delta += Math.PI * 2;
                 double allowed = Math.Max(-Math.PI * 2, Math.Min(Math.PI * 2, swept + delta));
                 delta = allowed - swept;
-                int count = Math.Max(1, (int)Math.Ceiling(Math.Abs(delta) * Math.Max(radius, 30) / 3));
+                int count = Math.Max(1, (int)Math.Min(128, Math.Ceiling(Math.Abs(delta) * Math.Max(radius, 30) / 3)));
                 for (int i = 1; i <= count; i++)
                 {
                     double a = lastAngle + delta * i / count;
