@@ -1,60 +1,48 @@
 # MinamotoBoard MSI
 
-当前版本：**0.6.0**。
+**English** | [日本語](INSTALLER.ja.md) | [简体中文](INSTALLER.zh-CN.md) | [正體中文](INSTALLER.zh-TW.md)
 
-## 安装与卸载
+## Installation and Uninstallation
 
-默认安装目录为 `C:\Program Files\MinamotoDev\Board`，遵循系统 `ProgramFiles64Folder`。
-目标环境为 Windows 10 22H2 x64 或更高版本、.NET Framework 4.8 或更高版本。
-安装需要管理员权限，运行白板使用普通用户权限。
+The default installation folder is `C:\Program Files\MinamotoDev\Board`, resolved through `ProgramFiles64Folder`. Requirements: x64 Windows 10 22H2 or later and .NET Framework 4.8 or later. Installation requires administrator approval; normal use runs with standard user permissions.
 
-安装包使用 WiX 官方标准 Windows Installer 对话框。安装与卸载界面自动识别 Windows 显示语言，支持English、日本語、简体中文和正體中文，其他语言默认使用英语。
-双击 MSI 后确认安装；检测到旧版本时直接显示更新确认页，同一安装包的维护模式提供修复和卸载。
-完成页提供“启动”和“完成”按钮。开始菜单提供白板入口。
-Windows 设置和控制面板的卸载入口启动安装目录中的 `Uninstall.exe`。
+The installer uses the official WiX Windows Installer dialogs. Installation and uninstallation detect the Windows display language, supporting English, Japanese, Simplified Chinese, and Traditional Chinese, with English as the fallback.
 
-卸载确认页提供“删除配置和插件”复选框，默认关闭。
-勾选后，交互式卸载成功时清理当前用户的：
+Opening the MSI presents a confirmation step. An older installed version leads directly to the update confirmation page; maintenance mode for the same package offers repair and removal. The completion page has **Launch** and **Finish** buttons. The Start menu contains an application shortcut.
 
-- Windows 文档目录下的 `MinamotoDev\Board`，包含 Plugins。
-- `%LOCALAPPDATA%\MinamotoDev\Board`，包含插件启用设置。
+Windows Settings and Control Panel launch `Uninstall.exe` from the installation folder. The uninstall confirmation includes **Delete settings and plugins**, unchecked by default. Selecting it removes the current user's following folders after a successful interactive uninstall:
 
-文档目录通过 Windows 已知文件夹解析，支持文档重定向。
-清理在发起卸载的用户上下文中执行，并核对用户 SID；不枚举其他用户。
-配置清理不会在升级、修复、取消或失败的卸载中执行。静默卸载默认不删除配置。
-遇到链接、目录访问失败或文件占用时，清理会显示错误。
+- `MinamotoDev\Board` under Windows Documents, including plugins.
+- `%LOCALAPPDATA%\MinamotoDev\Board`, including plugin enable/disable settings.
 
-新 MSI 对不同产品代码的旧版本执行卸载时，内部维护桥接程序调用系统 msiexec。
-只有 msiexec 需要提升权限；维护协调进程负责在原用户上下文中清理选中的配置。
-卸载程序确认后复制到临时目录运行，通过 msiexec 移除应用；开始菜单不创建卸载入口。
+Windows known folders support redirected Documents locations. Cleanup runs as the initiating user and verifies the user SID. Upgrades, repairs, canceled uninstalls, and failed uninstalls keep settings. Silent uninstallation keeps settings by default. Links, inaccessible folders, and locked files produce cleanup errors.
 
-升级使用固定 UpgradeCode，支持同版本覆盖；旧包移除位于可回滚事务内。
-包语言不影响旧版本识别。安装包和 EXE 当前未签名。
+The uninstaller copies itself to a temporary location and coordinates removal through system `msiexec`. Only `msiexec` needs elevation; selected settings are cleaned up in the initiating user's context. There is no Start menu uninstall shortcut.
 
-## 构建
+Upgrades use a fixed UpgradeCode, support same-version replacement, and remove the old package within a rollback-capable transaction. Package language does not affect upgrade detection. The MSI and EXE files are currently unsigned.
 
-应用使用 .NET Framework 4.8 Developer Pack 和系统 Framework MSBuild。
-安装包使用固定版本 WiX CLI 5.0.2 与官方 WixToolset.UI.wixext 5.0.2。
-开发机需要可运行构建工具的现代 .NET Runtime。
-多语言 MSI 构建还需要 Visual Studio x64 C++ 编译器；生成的语言选择组件仅依赖 Windows 系统 DLL。
+## Build Requirements
+
+- .NET Framework 4.8 Developer Pack and Framework MSBuild.
+- WiX CLI 5.0.2 and the official WixToolset.UI.wixext 5.0.2 extension.
+- A modern .NET runtime for the build tools.
+- Visual Studio's x64 C++ compiler for native MSI language selection. The resulting component depends only on Windows system DLLs.
+
+## Build
+
+The first command downloads the pinned build tools and verifies their SHA-256 hashes. The second builds the application, portable version, and MSI. The third builds only the MSI from existing application output.
 
 ```powershell
-# 首次下载构建工具，校验固定 SHA256
 .\installer\bootstrap-wix.ps1
-
-# 构建应用、无插件版与 MSI
 .\scripts\build-release.ps1
-
-# 单独构建 MSI
 .\installer\build-msi.ps1
 ```
 
-分发文件位于 `artifacts\release-0.6.0`：
+Output files are under `artifacts\`:
 
 - `MinamotoBoard.msi`
 - `MinamotoBoard-no-plugins.exe`
 
-安装包包含应用、卸载程序、插件 API、使用说明、GPL-3.0 和第三方许可证。
-WiX 标准确认页源码位于 `installer/StandardUI`，按 MS-RL 提供；修改范围见 `THIRD-PARTY-NOTICES.md`。
+The installer includes the application, uninstaller, plugin API, documentation, GPL-3.0 license, and third-party licenses. Standard dialog source is in [installer/StandardUI](../installer/StandardUI/) under MS-RL; see [Third-party notices](../THIRD-PARTY-NOTICES.md).
 
-[WiX UI 文档](https://docs.firegiant.com/wix/tools/wixext/wixui/) · [Windows Installer 自定义操作安全](https://learn.microsoft.com/en-us/windows/win32/msi/custom-action-security)
+[WiX UI documentation](https://docs.firegiant.com/wix/tools/wixext/wixui/) · [Windows Installer custom action security](https://learn.microsoft.com/en-us/windows/win32/msi/custom-action-security)

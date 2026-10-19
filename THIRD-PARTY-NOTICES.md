@@ -1,22 +1,25 @@
-# 第三方声明
+# Third-party Notices
 
-MinamotoBoard 自有代码采用 GPL-3.0-only。以下第三方内容保留原许可证及版权声明。
+**English** | [日本語](THIRD-PARTY-NOTICES.ja.md) | [简体中文](THIRD-PARTY-NOTICES.zh-CN.md) | [正體中文](THIRD-PARTY-NOTICES.zh-TW.md)
 
-## WiX 标准安装界面
 
-- 项目：WiX Toolset 5.0.2。
-- 版权所有：Copyright (c) .NET Foundation and contributors.
-- 许可证：Microsoft Reciprocal License（MS-RL），全文见 [installer/StandardUI/LICENSE.TXT](installer/StandardUI/LICENSE.TXT)。
-- 上游源码：https://github.com/wixtoolset/wix/tree/v5.0.2/src/ext/UI/wixlib
-- `installer/StandardUI/VerifyReadyDlg.wxs` 源自上游 `VerifyReadyDlg.wxs`；修改了对话框标识、显示条件、修复参数、卸载确认文本及旧产品卸载事件，增加了配置清理复选框。
-- `installer/StandardUI/ExitDialog.wxs` 源自上游 `ExitDialog.wxs`；修改了对话框标识和按钮位置，增加了独立启动按钮。
-- `installer/InstallerUI.wxs` 中依据上游标准向导编排的导航代码同样按 MS-RL 提供；本项目调整了安装、升级和卸载的导航与确认条件。
-- 构建使用官方 `WixToolset.UI.wixext` 扩展中的标准对话框、图片、本地化资源与路径验证操作；这些内容保留上游许可，不改授 GPL。
-- 安装包语言组件内嵌 WiX 官方四种语言的标准界面资源，相关资源按 MS-RL 提供。
+MinamotoBoard's own code is licensed under GPL-3.0-only. The third-party materials below retain their respective licenses and copyright notices.
 
-上述安装界面内容与白板应用为独立文件和组件；此处的例外不会改变白板应用代码的 GPL-3.0-only 授权。
+## WiX Standard Installer UI
 
-## 关于页图片
+- Project: WiX Toolset 5.0.2.
+- Copyright (c) .NET Foundation and contributors.
+- License: Microsoft Reciprocal License (MS-RL). See [full license](installer/StandardUI/LICENSE.TXT).
+- [Upstream source](https://github.com/wixtoolset/wix/tree/v5.0.2/src/ext/UI/wixlib).
+- `installer/StandardUI/VerifyReadyDlg.wxs` derives from the upstream `VerifyReadyDlg.wxs`. Modifications cover the dialog identifier, display conditions, repair parameters, uninstall confirmation, related-product removal events, and a settings-cleanup checkbox.
+- `installer/StandardUI/ExitDialog.wxs` derives from the upstream `ExitDialog.wxs`. Modifications cover the dialog identifier and button positions, with a separate launch button.
+- The standard wizard navigation in `installer/InstallerUI.wxs` is also provided under MS-RL, with installation, upgrade, and uninstall navigation and confirmation conditions adapted for this project.
+- Standard dialogs, artwork, localized resources, and path validation from the official `WixToolset.UI.wixext` extension remain under their upstream licenses.
+- The installer language component embeds the official WiX UI resources in four languages. These resources are provided under MS-RL.
 
-- GitHub 图标的矢量路径来自 https://github.com/primer/octicons/blob/main/icons/mark-github-16.svg ，用于链接项目仓库；相关品牌权利属于 GitHub，使用说明见 https://brand.github.com/foundations/logo 。
-- 维护人员头像由项目维护方提供，分别用于“丹羽　空”和 MinamotoDev 的身份展示，不属于项目代码的 GPL 授权范围。
+These installer UI materials are separate files and components from the whiteboard application. The application code is licensed under GPL-3.0-only.
+
+## About-page Images
+
+- The GitHub icon path comes from [Primer Octicons](https://github.com/primer/octicons/blob/main/icons/mark-github-16.svg) and links to the project repository. GitHub retains the relevant brand rights; see [GitHub brand guidelines](https://brand.github.com/foundations/logo).
+- Contributor photos are not covered by the GPL license for the project code.

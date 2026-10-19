@@ -8,17 +8,14 @@ A lightweight whiteboard app for large touchscreen PCs.
 
 ## Requirements
 
-- 64-bit Windows 10 22H2 or later.
-- .NET Framework 4.8 or later.
+See the [latest release](https://github.com/MinamotoDev/MinamotoBoard/releases/latest) for system requirements and dependencies.
 
 ## Run
 
 - `MinamotoBoard.msi`: Installer with plugin support.
 - `MinamotoBoard-no-plugins.exe`: Portable EXE without plugin support.
 
-After building, run `artifacts\release-0.6.0\app\MinamotoBoard.exe`. When copying this build to another PC, include `MinamotoBoard.exe.config` and `MinamotoBoard.PluginApi.dll` from the same folder.
-
-The portable version is at `artifacts\release-0.6.0\MinamotoBoard-no-plugins.exe` and can be copied on its own.
+Build outputs are under `artifacts\`. When copying the application folder to another PC, include `MinamotoBoard.exe.config` and `MinamotoBoard.PluginApi.dll` alongside `MinamotoBoard.exe`. The portable EXE can be copied on its own.
 
 ## Usage
 
@@ -26,21 +23,21 @@ The portable version is at `artifacts\release-0.6.0\MinamotoBoard-no-plugins.exe
 - `Tab`: Move keyboard focus.
 - Supports mouse, touch, and compatible pens.
 
-For display issues on older graphics hardware, enable software rendering for this process:
+For display issues on older graphics hardware, run this command from the application folder:
 
 ```powershell
-& .\artifacts\release-0.6.0\app\MinamotoBoard.exe --software-rendering
+& .\MinamotoBoard.exe --software-rendering
 ```
 
 ## Build
 
-Generate both release assets:
+Generate release files:
 
 ```powershell
 .\scripts\build-release.ps1
 ```
 
-Output: `artifacts\release-0.6.0`. A regular local Release build is at `src\MinamotoBoard\bin\Release\MinamotoBoard.exe`.
+Output: `artifacts\`.
 
 [Installer build requirements](docs/INSTALLER.md) · [Plugin development](docs/PLUGINS.md)
 
@@ -51,8 +48,6 @@ Check the target PC's .NET Framework version and x64 architecture:
 ```powershell
 .\scripts\check-runtime.ps1
 ```
-
-A .NET Framework registry `Release` value of `528040` or higher indicates version 4.8 or later. [Microsoft documentation](https://learn.microsoft.com/en-us/dotnet/framework/install/how-to-determine-which-versions-are-installed)
 
 ## Source
 

@@ -8,17 +8,14 @@
 
 ## 系統需求
 
-- 64 位元 Windows 10 22H2 或更新版本。
-- .NET Framework 4.8 或更新版本。
+系統需求與相依性請參閱[最新版本發行說明](https://github.com/MinamotoDev/MinamotoBoard/releases/latest)。
 
 ## 執行
 
 - `MinamotoBoard.msi`：支援外掛程式的安裝版。
 - `MinamotoBoard-no-plugins.exe`：不含外掛程式功能的免安裝 EXE。
 
-建置後執行 `artifacts\release-0.6.0\app\MinamotoBoard.exe`。將此建置複製到另一台電腦時，請一併複製同一資料夾中的 `MinamotoBoard.exe.config` 與 `MinamotoBoard.PluginApi.dll`。
-
-免安裝版位於 `artifacts\release-0.6.0\MinamotoBoard-no-plugins.exe`，只需複製這一份 EXE 即可。
+建置產物位於 `artifacts\` 下。將應用程式目錄複製到另一台電腦時，請將 `MinamotoBoard.exe.config` 與 `MinamotoBoard.PluginApi.dll` 和 `MinamotoBoard.exe` 放在一起。免安裝版只需複製 EXE。
 
 ## 使用方式
 
@@ -26,23 +23,23 @@
 - `Tab`：移動鍵盤焦點。
 - 支援滑鼠、觸控與相容的觸控筆輸入。
 
-舊型顯示卡出現顯示問題時，可為目前處理程序啟用軟體轉譯：
+舊型顯示卡出現顯示問題時，可在應用程式目錄執行：
 
 ```powershell
-& .\artifacts\release-0.6.0\app\MinamotoBoard.exe --software-rendering
+& .\MinamotoBoard.exe --software-rendering
 ```
 
 ## 建置
 
-產生兩份發行檔案：
+產生發行檔案：
 
 ```powershell
 .\scripts\build-release.ps1
 ```
 
-輸出目錄為 `artifacts\release-0.6.0`。一般本機 Release 建置位於 `src\MinamotoBoard\bin\Release\MinamotoBoard.exe`。
+輸出目錄：`artifacts\`。
 
-[安裝套件建置需求](docs/INSTALLER.md) · [外掛程式開發](docs/PLUGINS.md)
+[安裝套件建置需求](docs/INSTALLER.zh-TW.md) · [外掛程式開發](docs/PLUGINS.zh-TW.md)
 
 ## 執行階段檢查
 
@@ -52,8 +49,6 @@
 .\scripts\check-runtime.ps1
 ```
 
-.NET Framework 登錄中的 `Release` 值為 `528040` 或以上時，表示版本為 4.8 或更新版本。[Microsoft 檢查方式](https://learn.microsoft.com/en-us/dotnet/framework/install/how-to-determine-which-versions-are-installed)
-
 ## 原始碼
 
 [應用程式](src/MinamotoBoard/) · [外掛程式 API](src/MinamotoBoard.PluginApi/) · [範例外掛程式](samples/BoardTheme.Plugin/) · [安裝程式](installer/) · [測試](tests/MinamotoBoard.Tests/)
@@ -62,6 +57,6 @@
 
 Copyright (C) 2026 MinamotoDev
 
-除[第三方聲明](THIRD-PARTY-NOTICES.md)所列檔案外，專案程式碼採用 **GNU General Public License v3.0 only**（`GPL-3.0-only`）。可依 GPL 第 3 版的條款重新散布與修改本專案。
+除[第三方聲明](THIRD-PARTY-NOTICES.zh-TW.md)所列檔案外，專案程式碼採用 **GNU General Public License v3.0 only**（`GPL-3.0-only`）。可依 GPL 第 3 版的條款重新散布與修改本專案。
 
 本程式不提供任何擔保，包括適售性或特定用途適用性的默示擔保。完整條款請參閱 [LICENSE](LICENSE)。
