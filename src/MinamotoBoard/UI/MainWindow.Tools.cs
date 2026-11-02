@@ -22,9 +22,13 @@ namespace MinamotoBoard.UI
         private readonly Dictionary<BoardTool, Button> toolButtons = new Dictionary<BoardTool, Button>();
         private BoardTool activeTool = BoardTool.Pen;
         private BoardTool lastWritingTool = BoardTool.Pen;
-        private Button previousPageButton, nextPageButton, addPageButton, settingsButton;
+        private Button previousPageButton, nextPageButton, addPageButton, settingsButton, undoButton, redoButton;
         private StrokeCollection watchedInk;
         private long inkRevision;
+        private readonly Dictionary<StrokeCollection, PageInk> inkHistory = new Dictionary<StrokeCollection, PageInk>();
+        private bool historyApplying;
+        private bool historyCommitPosted;
+        private bool inkGesture;
         private CancellationTokenSource fillWork;
         private ToolPreferences preferences;
         private readonly Dictionary<int, Point> fillEraserPoints = new Dictionary<int, Point>();
@@ -44,8 +48,35 @@ namespace MinamotoBoard.UI
             Instruments.ImportStates(preferences.Instruments);
             if (ToolPreferences.Finite(preferences.WindowWidth)) Width = Math.Max(MinWidth, Math.Min(SystemParameters.VirtualScreenWidth, preferences.WindowWidth));
             if (ToolPreferences.Finite(preferences.WindowHeight)) Height = Math.Max(MinHeight, Math.Min(SystemParameters.VirtualScreenHeight, preferences.WindowHeight));
+            ApplyBetaToolVisibility();
             SelectTool(BoardTool.Pen);
-            Loaded += delegate { SelectTool(toolOptions.ContainsKey(preferences.Selected) && !InstrumentLayer.IsInstrument(preferences.Selected) ? preferences.Selected : BoardTool.Pen); };
+            Loaded += delegate
+            {
+                BoardTool selected = preferences.Selected;
+                if (!toolOptions.ContainsKey(selected) || InstrumentLayer.IsInstrument(selected) || !ToolEnabled(selected)) selected = BoardTool.Pen;
+                SelectTool(selected);
+            };
+        }
+
+        private bool ToolEnabled(BoardTool kind)
+        {
+            if (kind == BoardTool.Highlighter) return preferences.HighlighterEnabled;
+            if (kind == BoardTool.Bucket) return preferences.BucketEnabled;
+            return true;
+        }
+
+        private void ApplyBetaToolVisibility()
+        {
+            Button button;
+            if (toolButtons.TryGetValue(BoardTool.Highlighter, out button)) button.Visibility = preferences.HighlighterEnabled ? Visibility.Visible : Visibility.Collapsed;
+            if (toolButtons.TryGetValue(BoardTool.Bucket, out button)) button.Visibility = preferences.BucketEnabled ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void OnBetaToolsChanged()
+        {
+            ApplyBetaToolVisibility();
+            if (!ToolEnabled(activeTool)) SelectTool(BoardTool.Pen);
+            SaveToolPreferences();
         }
 
         private void SaveToolPreferences()
@@ -86,6 +117,8 @@ namespace MinamotoBoard.UI
             nextPageButton = IconButton(ToolbarIcons.Glyph("\uE761"), "下一页", OnNextPage);
             addPageButton = IconButton(ToolbarIcons.Glyph("\uE710"), "加页", OnAddPage);
             IconButton(ToolbarIcons.Glyph("\uE74D"), "清屏", OnClearPage);
+            undoButton = IconButton(ToolbarIcons.Glyph("\uE7A7"), "撤销", OnUndo);
+            redoButton = IconButton(ToolbarIcons.Glyph("\uE7A6"), "重做", OnRedo);
             IconButton(ToolbarIcons.Glyph("\uE70D"), "收起工具栏", OnHideToolbar);
             settingsButton = IconButton(ToolbarIcons.Glyph("\uE713"), "设置", OnSettings);
             IconButton(ToolbarIcons.Glyph("\uE711"), "关闭", OnClose);
@@ -95,6 +128,7 @@ namespace MinamotoBoard.UI
             Board.PreviewMouseLeftButtonDown += delegate(object sender, MouseButtonEventArgs e)
             {
                 if (e.StylusDevice != null) return;
+                BeginInkGesture();
                 if (activeTool == BoardTool.Bucket) { e.Handled = true; FillAt(e.GetPosition(Board)); }
                 else if (activeTool == BoardTool.Eraser) EraseFillAt(e.GetPosition(Board), int.MinValue, true);
             };
@@ -103,12 +137,18 @@ namespace MinamotoBoard.UI
             Board.PreviewMouseLeftButtonUp += delegate(object sender, MouseButtonEventArgs e)
             {
                 if (e.StylusDevice != null) return;
+                EndInkGesture();
                 if (activeTool == BoardTool.Eraser && fillEraserPoints.ContainsKey(int.MinValue)) EraseFillAt(e.GetPosition(Board), int.MinValue, false);
                 fillEraserPoints.Remove(int.MinValue);
             };
-            Board.LostMouseCapture += delegate { fillEraserPoints.Remove(int.MinValue); };
+            Board.LostMouseCapture += delegate
+            {
+                fillEraserPoints.Remove(int.MinValue);
+                EndInkGesture();
+            };
             Board.PreviewStylusDown += delegate(object sender, StylusDownEventArgs e)
             {
+                BeginInkGesture();
                 if (activeTool == BoardTool.Bucket) { e.Handled = true; FillAt(e.GetPosition(Board)); }
                 else if (e.StylusDevice.TabletDevice.Type == TabletDeviceType.Stylus && (activeTool == BoardTool.Eraser || e.Inverted))
                     EraseFillAt(e.GetPosition(Board), -1 - e.StylusDevice.Id, true);
@@ -120,14 +160,20 @@ namespace MinamotoBoard.UI
             };
             Board.PreviewStylusUp += delegate(object sender, StylusEventArgs e)
             {
+                EndInkGesture();
                 int pointer = -1 - e.StylusDevice.Id;
                 if (e.StylusDevice.TabletDevice.Type == TabletDeviceType.Stylus && fillEraserPoints.ContainsKey(pointer))
                     foreach (StylusPoint point in e.GetStylusPoints(Board)) EraseFillAt((Point)point, pointer, false);
                 fillEraserPoints.Remove(pointer);
             };
-            Board.LostStylusCapture += delegate(object sender, StylusEventArgs e) { fillEraserPoints.Remove(-1 - e.StylusDevice.Id); };
+            Board.LostStylusCapture += delegate(object sender, StylusEventArgs e)
+            {
+                fillEraserPoints.Remove(-1 - e.StylusDevice.Id);
+                EndInkGesture();
+            };
             Board.PreviewTouchDown += delegate(object sender, TouchEventArgs e)
             {
+                BeginInkGesture();
                 Point p = e.GetTouchPoint(Board).Position;
                 if (activeTool == BoardTool.Bucket) { e.Handled = true; FillAt(p); }
                 else if (activeTool == BoardTool.Eraser) EraseFillAt(p, e.TouchDevice.Id + 1, true);
@@ -147,8 +193,13 @@ namespace MinamotoBoard.UI
                     EraseFillAt(e.GetTouchPoint(Board).Position, pointer, false);
                 }
                 fillEraserPoints.Remove(pointer);
+                EndInkGesture();
             };
-            Board.LostTouchCapture += delegate(object sender, TouchEventArgs e) { fillEraserPoints.Remove(e.TouchDevice.Id + 1); };
+            Board.LostTouchCapture += delegate(object sender, TouchEventArgs e)
+            {
+                fillEraserPoints.Remove(e.TouchDevice.Id + 1);
+                EndInkGesture();
+            };
             RestoreToolPreferences();
         }
 
@@ -161,6 +212,7 @@ namespace MinamotoBoard.UI
                 if (activeTool != BoardTool.Pen && activeTool != BoardTool.Highlighter) SelectTool(lastWritingTool);
                 ToolOptionsPopup.IsOpen = false; Instruments.AddInstrument(kind); return;
             }
+            if (!ToolEnabled(kind)) return;
             if (kind == BoardTool.Pen || kind == BoardTool.Highlighter) lastWritingTool = kind;
             CancelToolWork(); ToolOptionsPopup.IsOpen = false; activeTool = kind;
             ApplyToolOptions();
@@ -191,7 +243,7 @@ namespace MinamotoBoard.UI
 
         private void ShowOptions(Button source, BoardTool kind)
         {
-            if (IsWriting()) return;
+            if (IsWriting() || !ToolEnabled(kind)) return;
             SelectTool(kind);
             ToolOptionsPanel.Children.Clear();
             ToolOptionsPanel.Children.Add(new TextBlock { Text = ToolbarIcons.Name(kind), FontSize = 16, FontWeight = FontWeights.SemiBold });
@@ -316,11 +368,143 @@ namespace MinamotoBoard.UI
 
         private void TrackInk()
         {
+            CommitHistory();
             fillEraserPoints.Clear();
             if (watchedInk != null) watchedInk.StrokesChanged -= OnInkChanged;
-            watchedInk = Board.Strokes; watchedInk.StrokesChanged += OnInkChanged; inkRevision++;
+            watchedInk = Board.Strokes;
+            PageInk page = PageFor(watchedInk);
+            page.Mirror = CopyStrokes(watchedInk);
+            page.Pending = null;
+            watchedInk.StrokesChanged += OnInkChanged;
+            inkRevision++;
+            UpdateHistoryButtons();
         }
-        private void OnInkChanged(object sender, StrokeCollectionChangedEventArgs e) { inkRevision++; }
+        private void OnInkChanged(object sender, StrokeCollectionChangedEventArgs e)
+        {
+            inkRevision++;
+            if (historyApplying) return;
+            StrokeCollection strokes = (StrokeCollection)sender;
+            PageInk page = PageFor(strokes);
+            if (page.Pending == null) page.Pending = page.Mirror;
+            page.Mirror = CopyStrokes(strokes);
+            ScheduleHistoryCommit();
+        }
+
+        private void BeginInkGesture()
+        {
+            if (inkGesture) return;
+            CommitHistory();
+            inkGesture = true;
+        }
+
+        private void EndInkGesture()
+        {
+            if (!inkGesture) return;
+            inkGesture = false;
+            ScheduleHistoryCommit();
+        }
+
+        private void ScheduleHistoryCommit()
+        {
+            if (historyCommitPosted) return;
+            historyCommitPosted = true;
+            Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(delegate
+            {
+                historyCommitPosted = false;
+                if (inkGesture) return;
+                CommitHistory();
+            }));
+        }
+
+        private void CommitHistory()
+        {
+            if (watchedInk == null || historyApplying) return;
+            PageInk page = PageFor(watchedInk);
+            if (page.Pending == null) return;
+            if (!SameStrokes(page.Pending, page.Mirror))
+            {
+                page.Undo.Add(page.Pending);
+                if (page.Undo.Count > 100) page.Undo.RemoveAt(0);
+                page.Redo.Clear();
+            }
+            page.Pending = null;
+            UpdateHistoryButtons();
+        }
+
+        private void OnUndo(object sender, RoutedEventArgs e) { TravelHistory(true); }
+        private void OnRedo(object sender, RoutedEventArgs e) { TravelHistory(false); }
+
+        private void TravelHistory(bool undo)
+        {
+            if (IsWriting() || historyApplying || watchedInk == null) return;
+            CommitHistory();
+            PageInk page = PageFor(watchedInk);
+            List<Stroke[]> source = undo ? page.Undo : page.Redo;
+            List<Stroke[]> destination = undo ? page.Redo : page.Undo;
+            if (source.Count == 0) return;
+            Stroke[] target = source[source.Count - 1];
+            source.RemoveAt(source.Count - 1);
+            destination.Add(page.Mirror);
+            if (destination.Count > 100) destination.RemoveAt(0);
+            ApplyStrokes(watchedInk, target);
+            page.Mirror = CopyStrokes(watchedInk);
+            page.Pending = null;
+            UpdateHistoryButtons();
+            Board.Focus();
+        }
+
+        private void ApplyStrokes(StrokeCollection strokes, Stroke[] desired)
+        {
+            historyApplying = true;
+            try
+            {
+                strokes.Clear();
+                if (desired.Length > 0) strokes.Add(new StrokeCollection(desired));
+            }
+            finally { historyApplying = false; }
+        }
+
+        private void UpdateHistoryButtons()
+        {
+            if (undoButton == null || watchedInk == null) return;
+            PageInk page = PageFor(watchedInk);
+            undoButton.IsEnabled = page.Undo.Count > 0 && page.Pending == null;
+            redoButton.IsEnabled = page.Redo.Count > 0 && page.Pending == null;
+        }
+
+        private PageInk PageFor(StrokeCollection strokes)
+        {
+            PageInk page;
+            if (!inkHistory.TryGetValue(strokes, out page))
+            {
+                page = new PageInk();
+                page.Mirror = CopyStrokes(strokes);
+                inkHistory.Add(strokes, page);
+            }
+            return page;
+        }
+
+        private static Stroke[] CopyStrokes(StrokeCollection strokes)
+        {
+            Stroke[] copy = new Stroke[strokes.Count];
+            for (int i = 0; i < copy.Length; i++) copy[i] = strokes[i];
+            return copy;
+        }
+
+        private static bool SameStrokes(Stroke[] left, Stroke[] right)
+        {
+            if (left == null || right == null || left.Length != right.Length) return false;
+            for (int i = 0; i < left.Length; i++) if (!ReferenceEquals(left[i], right[i])) return false;
+            return true;
+        }
+
+        private sealed class PageInk
+        {
+            public Stroke[] Mirror;
+            public Stroke[] Pending;
+            public readonly List<Stroke[]> Undo = new List<Stroke[]>();
+            public readonly List<Stroke[]> Redo = new List<Stroke[]>();
+        }
         private void CancelToolWork() { if (fillWork != null) fillWork.Cancel(); }
         private void EraseFillAt(Point point, int pointer, bool begin)
         {

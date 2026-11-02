@@ -4,6 +4,7 @@
   <text key="界面">Interface</text>
   <text key="插件">Plugins</text>
   <text key="关于">About</text>
+  <text key="工具">Tools</text>
   <text key="语言">Language</text>
   <text key="画笔">Pen</text>
   <text key="荧光笔">Highlighter</text>
@@ -20,6 +21,8 @@
   <text key="第 {0} / {1} 页">Page {0} of {1}</text>
   <text key="已达到 100 页上限">Page limit reached (100)</text>
   <text key="清屏">Clear Page</text>
+  <text key="撤销">Undo</text>
+  <text key="重做">Redo</text>
   <text key="收起工具栏">Collapse Toolbar</text>
   <text key="显示工具栏">Show Toolbar</text>
   <text key="关闭">Exit</text>
@@ -28,7 +31,7 @@
   <text key="最小化">Minimize</text>
   <text key="向左滚动">Scroll Left</text>
   <text key="向右滚动">Scroll Right</text>
-  <text key="清空当前页面的全部墨迹吗？您无法撤销此操作。">Clear all ink on this page? This cannot be undone.</text>
+  <text key="清空当前页面的全部墨迹吗？">Clear all ink on this page?</text>
   <text key="确定退出应用程序吗？未保存的墨迹将全部丢失。">Exit the application? All unsaved ink will be lost.</text>
   <text key="白色">White</text>
   <text key="黄色">Yellow</text>

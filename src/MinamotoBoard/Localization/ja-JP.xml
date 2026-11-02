@@ -4,6 +4,7 @@
   <text key="界面">表示</text>
   <text key="插件">プラグイン</text>
   <text key="关于">バージョン情報</text>
+  <text key="工具">ツール</text>
   <text key="语言">言語</text>
   <text key="画笔">ペン</text>
   <text key="荧光笔">蛍光ペン</text>
@@ -20,6 +21,8 @@
   <text key="第 {0} / {1} 页">{0} / {1} ページ</text>
   <text key="已达到 100 页上限">ページ数の上限（100 ページ）に達しました</text>
   <text key="清屏">ページを消去</text>
+  <text key="撤销">元に戻す</text>
+  <text key="重做">やり直す</text>
   <text key="收起工具栏">ツールバーを折りたたむ</text>
   <text key="显示工具栏">ツールバーを表示</text>
   <text key="关闭">終了</text>
@@ -28,7 +31,7 @@
   <text key="最小化">最小化</text>
   <text key="向左滚动">左にスクロール</text>
   <text key="向右滚动">右にスクロール</text>
-  <text key="清空当前页面的全部墨迹吗？您无法撤销此操作。">このページの筆跡をすべて消去しますか？この操作は取り消せません。</text>
+  <text key="清空当前页面的全部墨迹吗？">このページの筆跡をすべて消去しますか？</text>
   <text key="确定退出应用程序吗？未保存的墨迹将全部丢失。">アプリを終了しますか？保存されていない筆跡はすべて失われます。</text>
   <text key="白色">白</text>
   <text key="黄色">黄</text>

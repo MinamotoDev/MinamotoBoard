@@ -4,6 +4,7 @@
   <text key="界面">介面</text>
   <text key="插件">外掛程式</text>
   <text key="关于">關於</text>
+  <text key="工具">工具</text>
   <text key="语言">語言</text>
   <text key="画笔">畫筆</text>
   <text key="荧光笔">螢光筆</text>
@@ -20,6 +21,8 @@
   <text key="第 {0} / {1} 页">第 {0} / {1} 頁</text>
   <text key="已达到 100 页上限">已達 100 頁上限</text>
   <text key="清屏">清除頁面</text>
+  <text key="撤销">復原</text>
+  <text key="重做">重做</text>
   <text key="收起工具栏">收合工具列</text>
   <text key="显示工具栏">顯示工具列</text>
   <text key="关闭">關閉</text>
@@ -28,7 +31,7 @@
   <text key="最小化">最小化</text>
   <text key="向左滚动">向左捲動</text>
   <text key="向右滚动">向右捲動</text>
-  <text key="清空当前页面的全部墨迹吗？您无法撤销此操作。">要清除目前頁面的所有筆跡嗎？此操作無法復原。</text>
+  <text key="清空当前页面的全部墨迹吗？">要清除目前頁面的所有筆跡嗎？</text>
   <text key="确定退出应用程序吗？未保存的墨迹将全部丢失。">確定要結束應用程式嗎？所有未儲存的筆跡都將遺失。</text>
   <text key="白色">白色</text>
   <text key="黄色">黃色</text>

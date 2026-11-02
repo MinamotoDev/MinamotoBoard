@@ -90,7 +90,7 @@ namespace MinamotoBoard.UI
         private void OnClearPage(object sender, RoutedEventArgs e)
         {
             if (IsWriting() || Board.Strokes.Count == 0) return;
-            if (MessageBox.Show(this, Localizer.T("清空当前页面的全部墨迹吗？您无法撤销此操作。"), Localizer.T("清屏"), MessageBoxButton.OKCancel,
+            if (MessageBox.Show(this, Localizer.T("清空当前页面的全部墨迹吗？"), Localizer.T("清屏"), MessageBoxButton.OKCancel,
                 MessageBoxImage.Warning, MessageBoxResult.Cancel) != MessageBoxResult.OK) return;
             CancelToolWork(); Board.Strokes.Clear(); Board.Focus();
         }
@@ -129,9 +129,9 @@ namespace MinamotoBoard.UI
         {
             ToolOptionsPopup.IsOpen = false;
 #if !NO_PLUGINS
-            if (plugins != null) new SettingsWindow(plugins, safeMode, SelectLanguage) { Owner = this }.ShowDialog();
+            if (plugins != null) new SettingsWindow(plugins, safeMode, SelectLanguage, preferences, OnBetaToolsChanged) { Owner = this }.ShowDialog();
 #else
-            new SettingsWindow(SelectLanguage) { Owner = this }.ShowDialog();
+            new SettingsWindow(SelectLanguage, preferences, OnBetaToolsChanged) { Owner = this }.ShowDialog();
 #endif
         }
         private void SelectLanguage(string code)

@@ -19,7 +19,7 @@ Open MinamotoBoard from the Start menu.
 - Add drawing instruments from the toolbar. Use the pen or highlighter along their edges; use the red button to delete an instrument.
 - Drag rulers and set squares to move them. Drag the blue handle to resize and rotate them.
 - Drag the compass center to move it. Use its blue handle to adjust the radius, and draw arcs along its circular guide.
-- Fill affects enclosed areas. Clearing a page removes its ink permanently.
+- Fill affects enclosed areas. Clearing a page removes its ink and can be undone.
 - `F11`: Toggle full screen. `Esc`: Exit full screen. `Ctrl+Tab`: Show or hide the toolbar.
 
 ## Plugins and Uninstallation

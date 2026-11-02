@@ -34,6 +34,8 @@ namespace MinamotoBoard.UI
                 case "\uE76C": return Vector("M13,7 L22,16 13,25");
                 case "\uE710": return Vector("M16,5 V27 M5,16 H27");
                 case "\uE74D": return Vector("M6,9 H26 M12,9 V5 H20 V9 M9,9 V28 H23 V9 M14,13 V24 M18,13 V24");
+                case "\uE7A7": return Vector("M15,8 L9,14 15,20 M9,14 H19 C24,14 27,17 27,21 C27,26 23,28 18,28 H13");
+                case "\uE7A6": return Vector("M17,8 L23,14 17,20 M23,14 H13 C8,14 5,17 5,21 C5,26 9,28 14,28 H19");
                 case "\uE70D": return Vector("M6,11 L16,21 26,11");
                 case "\uE711": return Vector("M7,7 L25,25 M7,25 L25,7");
                 case "\uE713": return Vector("M13,3 H19 L20,7 23,9 27,8 30,13 27,16 27,19 29,22 26,27 22,26 19,28 18,31 H12 L11,27 8,25 4,26 1,21 4,18 4,15 2,12 5,7 9,8 12,6 Z M11,17 A5,5 0 1 1 21,17 A5,5 0 1 1 11,17");

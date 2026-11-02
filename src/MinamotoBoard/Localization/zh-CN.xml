@@ -4,6 +4,7 @@
   <text key="界面">界面</text>
   <text key="插件">插件</text>
   <text key="关于">关于</text>
+  <text key="工具">工具</text>
   <text key="语言">语言</text>
   <text key="画笔">画笔</text>
   <text key="荧光笔">荧光笔</text>
@@ -20,6 +21,8 @@
   <text key="第 {0} / {1} 页">第 {0} / {1} 页</text>
   <text key="已达到 100 页上限">已达到 100 页上限</text>
   <text key="清屏">清屏</text>
+  <text key="撤销">撤销</text>
+  <text key="重做">重做</text>
   <text key="收起工具栏">收起工具栏</text>
   <text key="显示工具栏">显示工具栏</text>
   <text key="关闭">关闭</text>
@@ -28,7 +31,7 @@
   <text key="最小化">最小化</text>
   <text key="向左滚动">向左滚动</text>
   <text key="向右滚动">向右滚动</text>
-  <text key="清空当前页面的全部墨迹吗？您无法撤销此操作。">清空当前页面的全部墨迹吗？您无法撤销此操作。</text>
+  <text key="清空当前页面的全部墨迹吗？">清空当前页面的全部墨迹吗？</text>
   <text key="确定退出应用程序吗？未保存的墨迹将全部丢失。">确定退出应用程序吗？未保存的墨迹将全部丢失。</text>
   <text key="白色">白色</text>
   <text key="黄色">黄色</text>

@@ -1,3 +1,4 @@
+using MinamotoBoard.Ink;
 using MinamotoBoard.Localization;
 using System;
 using System.Collections.Generic;
@@ -7,10 +8,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 #if !NO_PLUGINS
 using MinamotoBoard.Plugins;
 #endif
@@ -29,7 +33,7 @@ namespace MinamotoBoard.UI
             foreach (Action update in localizedLabels) update();
         }
 
-        public SettingsWindow(Action<string> selectLanguage)
+        public SettingsWindow(Action<string> selectLanguage, ToolPreferences preferences, Action toolsChanged)
         {
             BindText(delegate { Title = Localizer.T("设置"); }); Width = 720; Height = 540;
             MinWidth = 480; MinHeight = 360; WindowStartupLocation = WindowStartupLocation.CenterOwner;
@@ -56,6 +60,9 @@ namespace MinamotoBoard.UI
             TabItem interfaceTab = new TabItem { Content = display };
             BindText(delegate { interfaceTab.Header = Localizer.T("界面"); });
             sections.Items.Add(interfaceTab);
+            TabItem toolsTab = new TabItem { Content = CreateToolsPage(preferences, toolsChanged) };
+            BindText(delegate { toolsTab.Header = Localizer.T("工具"); });
+            sections.Items.Add(toolsTab);
             TabItem aboutTab = new TabItem { Content = CreateAboutPage() };
             BindText(delegate { aboutTab.Header = Localizer.T("关于"); });
             sections.Items.Add(aboutTab);
@@ -66,7 +73,7 @@ namespace MinamotoBoard.UI
         }
 
 #if !NO_PLUGINS
-        public SettingsWindow(PluginManager manager, bool safeMode, Action<string> selectLanguage) : this(selectLanguage)
+        public SettingsWindow(PluginManager manager, bool safeMode, Action<string> selectLanguage, ToolPreferences preferences, Action toolsChanged) : this(selectLanguage, preferences, toolsChanged)
         {
             DockPanel layout = new DockPanel { Margin = new Thickness(12) };
             TabItem pluginTab = new TabItem { Content = layout };
@@ -130,6 +137,109 @@ namespace MinamotoBoard.UI
             if (messageBindings.TryGetValue(control, out previous)) localizedLabels.Remove(previous);
             Action update = delegate { control.Text = Localizer.T(key) + detail; };
             messageBindings[control] = update; BindText(update);
+        }
+
+        private UIElement CreateToolsPage(ToolPreferences preferences, Action toolsChanged)
+        {
+            StackPanel page = new StackPanel { Margin = new Thickness(20) };
+            page.Children.Add(ToolSwitch("荧光笔", preferences.HighlighterEnabled, delegate(bool enabled)
+            {
+                preferences.HighlighterEnabled = enabled; toolsChanged();
+            }));
+            page.Children.Add(ToolSwitch("油漆桶", preferences.BucketEnabled, delegate(bool enabled)
+            {
+                preferences.BucketEnabled = enabled; toolsChanged();
+            }));
+            return page;
+        }
+
+        private UIElement ToolSwitch(string key, bool enabled, Action<bool> change)
+        {
+            DockPanel row = new DockPanel { Margin = new Thickness(0, 8, 0, 8) };
+            Image badge = BetaMark.Create();
+            badge.Margin = new Thickness(12, 0, 0, 0);
+            AutomationProperties.SetName(badge, "Beta");
+            DockPanel.SetDock(badge, Dock.Right);
+            row.Children.Add(badge);
+            ToggleButton toggle = CreateSwitch(enabled);
+            toggle.Margin = new Thickness(12, 0, 0, 0);
+            DockPanel.SetDock(toggle, Dock.Right);
+            row.Children.Add(toggle);
+            TextBlock label = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
+            BindText(delegate
+            {
+                label.Text = Localizer.T(key);
+                AutomationProperties.SetName(toggle, Localizer.T(key));
+            });
+            row.Children.Add(label);
+            toggle.Checked += delegate { change(true); };
+            toggle.Unchecked += delegate { change(false); };
+            return row;
+        }
+
+        private static readonly SolidColorBrush SwitchOff = Freeze(Color.FromRgb(0x59, 0x59, 0x59));
+        private static readonly SolidColorBrush SwitchOffHover = Freeze(Color.FromRgb(0x33, 0x33, 0x33));
+        private static readonly SolidColorBrush SwitchOn = Freeze(Color.FromRgb(0x00, 0x78, 0xD7));
+        private static readonly SolidColorBrush SwitchOnHover = Freeze(Color.FromRgb(0x00, 0x5A, 0x9E));
+
+        private static SolidColorBrush Freeze(Color color)
+        {
+            SolidColorBrush brush = new SolidColorBrush(color);
+            brush.Freeze();
+            return brush;
+        }
+
+        private static ToggleButton CreateSwitch(bool enabled)
+        {
+            FrameworkElementFactory root = new FrameworkElementFactory(typeof(Grid));
+            root.SetValue(FrameworkElement.MinWidthProperty, 48.0);
+            root.SetValue(FrameworkElement.MinHeightProperty, 36.0);
+            FrameworkElementFactory cluster = new FrameworkElementFactory(typeof(Grid));
+            cluster.SetValue(FrameworkElement.WidthProperty, 40.0);
+            cluster.SetValue(FrameworkElement.HeightProperty, 20.0);
+            cluster.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+            cluster.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+            FrameworkElementFactory track = new FrameworkElementFactory(typeof(Border));
+            track.Name = "Track";
+            track.SetValue(Border.CornerRadiusProperty, new CornerRadius(10));
+            track.SetValue(Border.BorderThicknessProperty, new Thickness(2));
+            track.SetValue(Border.BorderBrushProperty, SwitchOff);
+            track.SetValue(Border.BackgroundProperty, Brushes.White);
+            track.SetValue(UIElement.SnapsToDevicePixelsProperty, true);
+            FrameworkElementFactory thumb = new FrameworkElementFactory(typeof(Ellipse));
+            thumb.Name = "Thumb";
+            thumb.SetValue(FrameworkElement.WidthProperty, 12.0);
+            thumb.SetValue(FrameworkElement.HeightProperty, 12.0);
+            thumb.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Left);
+            thumb.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+            thumb.SetValue(FrameworkElement.MarginProperty, new Thickness(4, 0, 0, 0));
+            thumb.SetValue(Shape.FillProperty, SwitchOff);
+            cluster.AppendChild(track);
+            cluster.AppendChild(thumb);
+            root.AppendChild(cluster);
+            ControlTemplate template = new ControlTemplate(typeof(ToggleButton)) { VisualTree = root };
+            Trigger on = new Trigger { Property = ToggleButton.IsCheckedProperty, Value = true };
+            on.Setters.Add(new Setter(Border.BackgroundProperty, SwitchOn, "Track"));
+            on.Setters.Add(new Setter(Border.BorderBrushProperty, SwitchOn, "Track"));
+            on.Setters.Add(new Setter(Shape.FillProperty, Brushes.White, "Thumb"));
+            on.Setters.Add(new Setter(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Right, "Thumb"));
+            on.Setters.Add(new Setter(FrameworkElement.MarginProperty, new Thickness(0, 0, 4, 0), "Thumb"));
+            template.Triggers.Add(on);
+            MultiTrigger hoverOff = new MultiTrigger();
+            hoverOff.Conditions.Add(new Condition(UIElement.IsMouseOverProperty, true));
+            hoverOff.Conditions.Add(new Condition(ToggleButton.IsCheckedProperty, false));
+            hoverOff.Setters.Add(new Setter(Border.BorderBrushProperty, SwitchOffHover, "Track"));
+            hoverOff.Setters.Add(new Setter(Shape.FillProperty, SwitchOffHover, "Thumb"));
+            template.Triggers.Add(hoverOff);
+            MultiTrigger hoverOn = new MultiTrigger();
+            hoverOn.Conditions.Add(new Condition(UIElement.IsMouseOverProperty, true));
+            hoverOn.Conditions.Add(new Condition(ToggleButton.IsCheckedProperty, true));
+            hoverOn.Setters.Add(new Setter(Border.BackgroundProperty, SwitchOnHover, "Track"));
+            hoverOn.Setters.Add(new Setter(Border.BorderBrushProperty, SwitchOnHover, "Track"));
+            template.Triggers.Add(hoverOn);
+            return new ToggleButton { IsChecked = enabled, Template = template, Focusable = true,
+                Background = Brushes.Transparent, BorderThickness = new Thickness(0), Padding = new Thickness(0),
+                HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
         }
 
         private UIElement CreateAboutPage()
