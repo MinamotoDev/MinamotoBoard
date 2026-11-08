@@ -157,10 +157,8 @@ namespace MinamotoBoard.UI
         {
             DockPanel row = new DockPanel { Margin = new Thickness(0, 8, 0, 8) };
             Image badge = BetaMark.Create();
-            badge.Margin = new Thickness(12, 0, 0, 0);
+            badge.Margin = new Thickness(6, 0, 0, 0);
             AutomationProperties.SetName(badge, "Beta");
-            DockPanel.SetDock(badge, Dock.Right);
-            row.Children.Add(badge);
             ToggleButton toggle = CreateSwitch(enabled);
             toggle.Margin = new Thickness(12, 0, 0, 0);
             DockPanel.SetDock(toggle, Dock.Right);
@@ -171,7 +169,11 @@ namespace MinamotoBoard.UI
                 label.Text = Localizer.T(key);
                 AutomationProperties.SetName(toggle, Localizer.T(key));
             });
-            row.Children.Add(label);
+            StackPanel caption = new StackPanel { Orientation = Orientation.Horizontal,
+                VerticalAlignment = VerticalAlignment.Center };
+            caption.Children.Add(label);
+            caption.Children.Add(badge);
+            row.Children.Add(caption);
             toggle.Checked += delegate { change(true); };
             toggle.Unchecked += delegate { change(false); };
             return row;
