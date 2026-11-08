@@ -5,7 +5,8 @@
 
 ## New Features and Bug Fixes
 
-- Improved the UI and installation process.
+- Added Standard and Adaptive eraser modes (Beta), available under Settings → Tools.
+- Improved parts of the UI.
 
 ## System Requirements and Dependencies
 
@@ -21,7 +22,8 @@
 
 ## 新機能と不具合の修正
 
-- UI とインストールの流れを改善しました。
+- 消しゴムに「標準」と「自動調整」モード（Beta）を追加しました。「設定 → ツール」で選択できます。
+- UI の一部を改善しました。
 
 ## 動作環境と依存関係
 
@@ -37,7 +39,8 @@
 
 ## 新功能和错误修复
 
-- 优化界面和安装过程
+- 新增标准和自适应橡皮功能（Beta），可在“设置 → 工具”中选择。
+- 优化部分界面。
 
 ## 配置要求和依赖
 
@@ -53,7 +56,8 @@
 
 ## 新功能與錯誤修正
 
-- 改善使用者介面與安裝流程。
+- 新增標準與自適應橡皮擦功能（Beta），可在「設定 → 工具」中選擇。
+- 改善部分使用者介面。
 
 ## 系統需求與相依性
 

@@ -9,6 +9,10 @@
   <text key="画笔">Pen</text>
   <text key="荧光笔">Highlighter</text>
   <text key="橡皮">Eraser</text>
+  <text key="传统">Traditional</text>
+  <text key="标准">Standard</text>
+  <text key="手掌">Palm</text>
+  <text key="自适应">Adaptive</text>
   <text key="直尺">Ruler</text>
   <text key="45° 三角板">45° Set Square</text>
   <text key="30° / 60° 三角板">30° / 60° Set Square</text>

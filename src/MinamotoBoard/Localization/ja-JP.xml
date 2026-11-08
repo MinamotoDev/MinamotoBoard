@@ -9,6 +9,10 @@
   <text key="画笔">ペン</text>
   <text key="荧光笔">蛍光ペン</text>
   <text key="橡皮">消しゴム</text>
+  <text key="传统">従来</text>
+  <text key="标准">標準</text>
+  <text key="手掌">手のひら</text>
+  <text key="自适应">自動調整</text>
   <text key="直尺">定規</text>
   <text key="45° 三角板">45° 三角定規</text>
   <text key="30° / 60° 三角板">30° / 60° 三角定規</text>

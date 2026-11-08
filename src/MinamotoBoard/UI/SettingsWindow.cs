@@ -25,6 +25,7 @@ namespace MinamotoBoard.UI
     {
         private readonly TabControl sections;
         private readonly List<Action> localizedLabels = new List<Action>();
+        private readonly TextBlock labelDebugMode = new TextBlock { Text = "Debug Mode", Visibility = Visibility.Collapsed };
 
         private void BindText(Action update) { localizedLabels.Add(update); update(); }
         private void RefreshLanguage()
@@ -150,15 +151,47 @@ namespace MinamotoBoard.UI
             {
                 preferences.BucketEnabled = enabled; toolsChanged();
             }));
+            DockPanel eraserRow = new DockPanel { Margin = new Thickness(0, 8, 0, 8) };
+            ComboBox eraserMode = new ComboBox { Width = 160, MinHeight = 36,
+                VerticalContentAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Right,
+                HorizontalContentAlignment = HorizontalAlignment.Stretch };
+            DockPanel.SetDock(eraserMode, Dock.Right);
+            eraserRow.Children.Add(eraserMode);
+            TextBlock eraserLabel = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
+            StackPanel eraserCaption = new StackPanel { Orientation = Orientation.Horizontal,
+                VerticalAlignment = VerticalAlignment.Center };
+            eraserCaption.Children.Add(eraserLabel);
+            eraserRow.Children.Add(eraserCaption);
+            bool refreshing = false;
+            BindText(delegate
+            {
+                refreshing = true;
+                try
+                {
+                    eraserLabel.Text = Localizer.T("橡皮");
+                    AutomationProperties.SetName(eraserMode, Localizer.T("橡皮"));
+                    eraserMode.Items.Clear();
+                    eraserMode.Items.Add(EraserModeItem("传统", false));
+                    eraserMode.Items.Add(EraserModeItem("标准", true));
+                    eraserMode.Items.Add(EraserModeItem("自适应", true));
+                    eraserMode.SelectedIndex = preferences.AdaptiveEraser ? 2 : preferences.StandardEraser ? 1 : 0;
+                }
+                finally { refreshing = false; }
+            });
+            eraserMode.SelectionChanged += delegate
+            {
+                if (refreshing || eraserMode.SelectedIndex < 0) return;
+                preferences.StandardEraser = eraserMode.SelectedIndex == 1;
+                preferences.AdaptiveEraser = eraserMode.SelectedIndex == 2;
+                toolsChanged();
+            };
+            page.Children.Add(eraserRow);
             return page;
         }
 
         private UIElement ToolSwitch(string key, bool enabled, Action<bool> change)
         {
             DockPanel row = new DockPanel { Margin = new Thickness(0, 8, 0, 8) };
-            Image badge = BetaMark.Create();
-            badge.Margin = new Thickness(6, 0, 0, 0);
-            AutomationProperties.SetName(badge, "Beta");
             ToggleButton toggle = CreateSwitch(enabled);
             toggle.Margin = new Thickness(12, 0, 0, 0);
             DockPanel.SetDock(toggle, Dock.Right);
@@ -169,14 +202,38 @@ namespace MinamotoBoard.UI
                 label.Text = Localizer.T(key);
                 AutomationProperties.SetName(toggle, Localizer.T(key));
             });
-            StackPanel caption = new StackPanel { Orientation = Orientation.Horizontal,
-                VerticalAlignment = VerticalAlignment.Center };
-            caption.Children.Add(label);
-            caption.Children.Add(badge);
-            row.Children.Add(caption);
+            row.Children.Add(label);
             toggle.Checked += delegate { change(true); };
             toggle.Unchecked += delegate { change(false); };
             return row;
+        }
+
+        private ComboBoxItem EraserModeItem(string key, bool beta)
+        {
+            // A data template gives the selection box its own visual tree. Reusing a UIElement
+            // makes ComboBox clone the dropdown's width, causing growth and clipped badges.
+            FrameworkElementFactory caption = new FrameworkElementFactory(typeof(DockPanel));
+            if (beta)
+            {
+                FrameworkElementFactory badge = new FrameworkElementFactory(typeof(Image));
+                badge.SetValue(Image.SourceProperty, BetaMark.Create().Source);
+                badge.SetValue(FrameworkElement.HeightProperty, 16.0);
+                badge.SetValue(Image.StretchProperty, Stretch.Uniform);
+                badge.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+                badge.SetValue(FrameworkElement.MarginProperty, new Thickness(8, 0, 2, 0));
+                badge.SetValue(DockPanel.DockProperty, Dock.Right);
+                badge.SetValue(AutomationProperties.NameProperty, "Beta");
+                caption.AppendChild(badge);
+            }
+            FrameworkElementFactory label = new FrameworkElementFactory(typeof(TextBlock));
+            label.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding());
+            label.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+            caption.AppendChild(label);
+            ComboBoxItem item = new ComboBoxItem { Content = Localizer.T(key),
+                ContentTemplate = new DataTemplate { VisualTree = caption }, MinHeight = 32,
+                VerticalContentAlignment = VerticalAlignment.Center, HorizontalContentAlignment = HorizontalAlignment.Stretch };
+            AutomationProperties.SetName(item, Localizer.T(key) + (beta ? " Beta" : ""));
+            return item;
         }
 
         private static readonly SolidColorBrush SwitchOff = Freeze(Color.FromRgb(0x59, 0x59, 0x59));
@@ -273,6 +330,12 @@ namespace MinamotoBoard.UI
             BindText(delegate { contributors.Text = Localizer.T("贡献者"); }); layout.Children.Add(contributors);
             layout.Children.Add(Maintainer("MinamotoDev", "MinamotoDev.png", "https://github.com/MinamotoDev"));
             layout.Children.Add(Maintainer("丹羽　空", "NiwaSora.jpg", null));
+            layout.Children.Add(labelDebugMode);
+            Loaded += delegate
+            {
+                MainWindow board = Owner as MainWindow;
+                if (board != null && board.DebugMode) labelDebugMode.Visibility = Visibility.Visible;
+            };
             return new ScrollViewer { Content = layout, VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
         }
@@ -281,6 +344,29 @@ namespace MinamotoBoard.UI
         {
             DockPanel row = new DockPanel { Margin = new Thickness(0, 0, 0, 16) };
             Image image = AssetImage(avatar, 56);
+            if (avatar == "NiwaSora.jpg")
+            {
+                int taps = 0;
+                long lastTap = 0;
+                Action tap = delegate
+                {
+                    long now = Stopwatch.GetTimestamp();
+                    if ((double)(now - lastTap) / Stopwatch.Frequency > 2) taps = 0;
+                    lastTap = now;
+                    if (++taps < 7) return;
+                    taps = 0;
+                    MainWindow board = Owner as MainWindow;
+                    if (board != null)
+                    {
+                        board.EnableDebugMode();
+                        labelDebugMode.Visibility = Visibility.Visible;
+                    }
+                };
+                image.TouchDown += delegate(object sender, System.Windows.Input.TouchEventArgs e)
+                { e.Handled = true; tap(); };
+                image.MouseLeftButtonDown += delegate(object sender, System.Windows.Input.MouseButtonEventArgs e)
+                { if (e.StylusDevice == null) { e.Handled = true; tap(); } };
+            }
             image.Margin = new Thickness(0, 0, 14, 0);
             DockPanel.SetDock(image, Dock.Left); row.Children.Add(image);
             TextBlock label = new TextBlock { FontSize = 16, VerticalAlignment = VerticalAlignment.Center };

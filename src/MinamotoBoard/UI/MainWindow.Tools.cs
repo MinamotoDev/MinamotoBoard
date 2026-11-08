@@ -74,8 +74,10 @@ namespace MinamotoBoard.UI
 
         private void OnBetaToolsChanged()
         {
+            CancelAdaptiveErasing();
             ApplyBetaToolVisibility();
             if (!ToolEnabled(activeTool)) SelectTool(BoardTool.Pen);
+            ApplyToolOptions();
             SaveToolPreferences();
         }
 
@@ -123,6 +125,7 @@ namespace MinamotoBoard.UI
             settingsButton = IconButton(ToolbarIcons.Glyph("\uE713"), "设置", OnSettings);
             IconButton(ToolbarIcons.Glyph("\uE711"), "关闭", OnClose);
             BindOptionsGesture(ShowToolbarButton, delegate { return activeTool; }, true);
+            BindAdaptiveEraser();
             Board.StrokeErasing += delegate(object sender, InkCanvasStrokeErasingEventArgs e)
             { if (e.Stroke is RegionFillStroke) e.Cancel = true; };
             Board.PreviewMouseLeftButtonDown += delegate(object sender, MouseButtonEventArgs e)
@@ -214,6 +217,7 @@ namespace MinamotoBoard.UI
             }
             if (!ToolEnabled(kind)) return;
             if (kind == BoardTool.Pen || kind == BoardTool.Highlighter) lastWritingTool = kind;
+            CancelAdaptiveErasing();
             CancelToolWork(); ToolOptionsPopup.IsOpen = false; activeTool = kind;
             ApplyToolOptions();
             foreach (KeyValuePair<BoardTool, Button> pair in toolButtons)
@@ -237,6 +241,11 @@ namespace MinamotoBoard.UI
             { Board.EditingMode = InkCanvasEditingMode.None; Board.EditingModeInverted = InkCanvasEditingMode.None; }
             else { Board.DefaultDrawingAttributes = settings.Attributes(); tools.UsePen(); }
             if (Board.LiveHighlighter || Board.DashedInk) Board.EditingMode = InkCanvasEditingMode.None;
+            if (AdaptiveErasing)
+            {
+                Board.EditingMode = InkCanvasEditingMode.None;
+                Board.EditingModeInverted = InkCanvasEditingMode.None;
+            }
             Board.UpdateHighlighterCursor();
             Instruments.Activate(activeTool, settings);
         }
@@ -286,7 +295,7 @@ namespace MinamotoBoard.UI
                 }
                 ToolOptionsPanel.Children.Add(palette);
             }
-            if (kind != BoardTool.Bucket)
+            if (kind != BoardTool.Bucket && !(kind == BoardTool.Eraser && preferences.AdaptiveEraser))
                 AddSlider(Localizer.T("粗细"), kind == BoardTool.Eraser ? 8 : 1, kind == BoardTool.Eraser ? 128 : 40,
                     settings.Width, delegate(double value) { settings.Width = value; ApplyToolOptions(); });
             if (kind == BoardTool.Pen || kind == BoardTool.Highlighter || kind == BoardTool.Eraser)
@@ -399,6 +408,7 @@ namespace MinamotoBoard.UI
 
         private void EndInkGesture()
         {
+            if (adaptiveContacts.Count != 0) return;
             if (!inkGesture) return;
             inkGesture = false;
             ScheduleHistoryCommit();

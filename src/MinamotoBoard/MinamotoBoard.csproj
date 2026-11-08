@@ -36,6 +36,7 @@
     <Compile Include="App.xaml.cs"><DependentUpon>App.xaml</DependentUpon></Compile>
     <Compile Include="UI\MainWindow.xaml.cs"><DependentUpon>MainWindow.xaml</DependentUpon></Compile>
     <Compile Include="UI\MainWindow.Tools.cs" />
+    <Compile Include="UI\MainWindow.Eraser.cs" />
     <Compile Include="UI\ToolbarIcons.cs" />
     <Compile Include="Localization\Localizer.cs" />
     <EmbeddedResource Include="Localization\zh-CN.xml"><LogicalName>MinamotoBoard.Localization.zh-CN.xml</LogicalName></EmbeddedResource>
@@ -43,6 +44,7 @@
     <EmbeddedResource Include="Localization\ja-JP.xml"><LogicalName>MinamotoBoard.Localization.ja-JP.xml</LogicalName></EmbeddedResource>
     <EmbeddedResource Include="Localization\en-US.xml"><LogicalName>MinamotoBoard.Localization.en-US.xml</LogicalName></EmbeddedResource>
     <Compile Include="Ink\InkTools.cs" />
+    <Compile Include="Ink\AdaptiveEraser.cs" />
     <Compile Include="Ink\DrawingToolOptions.cs" />
     <Compile Include="Ink\HighlighterCanvas.cs" />
     <Compile Include="Ink\HighlighterCursor.cs" />
@@ -62,6 +64,7 @@
     <None Include="App.config" />
     <None Include="app.manifest" />
     <Resource Include="Assets\MinamotoBoard.ico" />
+    <Resource Include="Assets\Eraser.png" />
     <Resource Include="Assets\About\GitHub-Mark.geometry" />
     <Resource Include="Assets\About\MinamotoDev.png" />
     <Resource Include="Assets\About\NiwaSora.jpg" />

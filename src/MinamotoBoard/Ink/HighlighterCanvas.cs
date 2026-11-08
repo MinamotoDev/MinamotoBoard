@@ -148,6 +148,7 @@ namespace MinamotoBoard.Ink
         public bool DashedInk { get; set; }
         public int InkStyle { get; set; }
         public bool EraserCursor { get; set; }
+        public bool EraserImageVisible { get; set; }
         public double EraserDiameter { get; set; }
         private bool touchInput, cursorIsEraser;
         private Stroke current;
@@ -165,6 +166,10 @@ namespace MinamotoBoard.Ink
 
         public void UpdateHighlighterCursor()
         {
+            if (EraserImageVisible)
+            {
+                UseCustomCursor = true; Cursor = Cursors.None; Mouse.UpdateCursor(); return;
+            }
             if (touchInput)
             {
                 UseCustomCursor = true; Cursor = Cursors.None; Mouse.UpdateCursor(); return;
@@ -250,6 +255,15 @@ namespace MinamotoBoard.Ink
             Finish(); e.Handled = true;
         }
         public void NotifyPointerInput(bool touch) { if (touch) HideTouchCursor(); else ShowPointerCursor(); }
+        internal void ApplyAdaptiveErase(Stroke stroke, StrokeCollection fragments)
+        {
+            // WPF's cancellable StrokeErasing arguments have an internal constructor.
+            // Custom erasure updates the collection and raises the completion notification.
+            if (!Strokes.Contains(stroke)) return;
+            if (fragments.Count == 0) Strokes.Remove(stroke);
+            else Strokes.Replace(stroke, fragments);
+            OnStrokeErased(new RoutedEventArgs(StrokeErasedEvent));
+        }
         public static Stroke CreateToolStroke(Point point, DrawingToolOptions options, bool guided)
         {
             StylusPointCollection points = new StylusPointCollection(new[] { new StylusPoint(point.X, point.Y) });

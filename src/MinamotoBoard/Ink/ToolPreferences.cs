@@ -32,6 +32,8 @@ namespace MinamotoBoard.Ink
         // Missing values stay off. Highlighter and fill are opt-in.
         public bool HighlighterEnabled;
         public bool BucketEnabled;
+        public bool AdaptiveEraser;
+        public bool StandardEraser;
         public double WindowWidth = 1280, WindowHeight = 720;
         public List<ToolPreference> Tools = new List<ToolPreference>();
         public List<InstrumentState> Instruments = new List<InstrumentState>();
