@@ -88,4 +88,18 @@
   <text key="配置目录包含链接，未删除配置。">配置目录包含链接，未删除配置。</text>
   <text key="配置目录包含链接。">配置目录包含链接。</text>
   <text key="无法读取安装信息，错误代码：">无法读取安装信息，错误代码：</text>
+  <text key="文件">文件</text>
+  <text key="保存设置">保存设置</text>
+  <text key="退出应用程序时自动保存">退出应用程序时自动保存</text>
+  <text key="保存路径">保存路径</text>
+  <text key="浏览…">浏览…</text>
+  <text key="已保存到：">已保存到：</text>
+  <text key="保存白板失败：">保存白板失败：</text>
+  <text key="打开白板">打开白板</text>
+  <text key="打开白板失败：">打开白板失败：</text>
+  <text key="打开文件前保存当前白板吗？">打开文件前保存当前白板吗？</text>
+  <text key="另存为">另存为</text>
+  <text key="确定退出应用程序吗？">确定退出应用程序吗？</text>
+  <text key="请等待填色完成后再保存。">请等待填色完成后再保存。</text>
+  <text key="追加后将超过 100 页上限，无法打开此文件。">追加后将超过 100 页上限，无法打开此文件。</text>
 </translations>

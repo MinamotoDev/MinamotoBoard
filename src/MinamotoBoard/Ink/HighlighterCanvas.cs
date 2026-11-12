@@ -19,6 +19,7 @@ namespace MinamotoBoard.Ink
         private bool appending;
         private Rect bounds = Rect.Empty;
         private readonly bool dashed;
+        public bool IsDashed { get { return dashed; } }
         private bool dashPaint = true;
         private double dashRemaining;
 

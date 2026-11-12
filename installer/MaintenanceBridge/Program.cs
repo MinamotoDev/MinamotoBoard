@@ -14,8 +14,8 @@ using System.Windows.Forms;
 
 [assembly: AssemblyTitle("MinamotoBoard MSI Maintenance Bridge")]
 [assembly: AssemblyCompany("MinamotoDev")]
-[assembly: AssemblyVersion("0.8.0.0")]
-[assembly: AssemblyFileVersion("0.8.0.0")]
+[assembly: AssemblyVersion("0.9.0.0")]
+[assembly: AssemblyFileVersion("0.9.0.0")]
 
 internal static class Program
 {
@@ -180,6 +180,10 @@ internal static class Program
         foreach (string entry in Directory.GetFileSystemEntries(directory))
         {
             RequireInsideRoot(root, entry);
+            // Documents are user work, not configuration or plugins. Preserve both the default
+            // save folder and board files stored in a custom subfolder under the configuration root.
+            if (string.Equals(Path.GetFileName(entry), "Saves", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(Path.GetExtension(entry), ".mboard", StringComparison.OrdinalIgnoreCase)) continue;
             FileAttributes attributes = File.GetAttributes(entry);
             if ((attributes & FileAttributes.ReparsePoint) != 0)
                 throw new IOException(Localizer.T("配置目录包含链接，未删除配置。"));
@@ -217,7 +221,8 @@ internal static class Program
             File.Delete(file);
         }
         // Post-order, non-recursive directory deletion cannot traverse a newly introduced junction.
-        foreach (string directory in directories) Directory.Delete(directory, false);
+        foreach (string directory in directories)
+            if (Directory.GetFileSystemEntries(directory).Length == 0) Directory.Delete(directory, false);
     }
 
     private static void CheckCleanupParents(IEnumerable<string> roots, string file)

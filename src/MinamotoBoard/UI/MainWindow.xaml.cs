@@ -35,6 +35,8 @@ namespace MinamotoBoard.UI
             Localizer.Initialize(preferences.Language);
             InitializeComponent();
             document = new BoardDocument(Board.Strokes, Board.Background);
+            DependencyPropertyDescriptor.FromProperty(HighlighterCanvas.BackgroundProperty, typeof(HighlighterCanvas))
+                .AddValueChanged(Board, delegate { documentDirty = true; });
             tools = new InkTools(Board);
             BuildToolbar(); UpdatePageControls(); TrackInk();
             Instruments.InkCreated += delegate(System.Windows.Ink.StrokeCollection strokes) { Board.Strokes.Add(strokes); };
@@ -82,7 +84,7 @@ namespace MinamotoBoard.UI
             Label(addPageButton, document.CanAddPage ? Localizer.T("加页") + " · " + page : Localizer.T("已达到 100 页上限"));
         }
         private void OnAddPage(object sender, RoutedEventArgs e)
-        { if (IsWriting()) return; CaptureCurrentPage(); if (document.AddPage()) ShowCurrentPage(); }
+        { if (IsWriting()) return; CaptureCurrentPage(); if (document.AddPage()) { documentDirty = true; ShowCurrentPage(); } }
         private void OnPreviousPage(object sender, RoutedEventArgs e)
         { if (IsWriting()) return; CaptureCurrentPage(); if (document.MovePrevious()) ShowCurrentPage(); }
         private void OnNextPage(object sender, RoutedEventArgs e)
@@ -172,7 +174,9 @@ namespace MinamotoBoard.UI
         }
         private void OnPreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.F11) { SetFullscreen(!fullscreen); e.Handled = true; }
+            if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Control) { OnSaveDocument(sender, e); e.Handled = true; }
+            else if (e.Key == Key.O && Keyboard.Modifiers == ModifierKeys.Control) { OpenDocument(); e.Handled = true; }
+            else if (e.Key == Key.F11) { SetFullscreen(!fullscreen); e.Handled = true; }
             else if (e.Key == Key.Escape && ToolOptionsPopup.IsOpen) { ToolOptionsPopup.IsOpen = false; e.Handled = true; }
             else if (e.Key == Key.Escape && fullscreen) { SetFullscreen(false); e.Handled = true; }
             else if (e.Key == Key.Tab && Keyboard.Modifiers == ModifierKeys.Control)
@@ -181,10 +185,13 @@ namespace MinamotoBoard.UI
         private void OnClose(object sender, RoutedEventArgs e) { Close(); }
         private void OnClosing(object sender, CancelEventArgs e)
         {
+            if (IsWriting()) { e.Cancel = true; return; }
             CaptureCurrentPage();
-            if (!document.HasInk) return;
-            e.Cancel = MessageBox.Show(this, Localizer.T("确定退出应用程序吗？未保存的墨迹将全部丢失。"), Localizer.T("关闭"),
-                MessageBoxButton.OKCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel) != MessageBoxResult.OK;
+            if (!document.HasInk && !documentDirty) return;
+            string prompt = preferences.AutoSaveOnExit || !documentDirty ? "确定退出应用程序吗？" : "确定退出应用程序吗？未保存的墨迹将全部丢失。";
+            e.Cancel = MessageBox.Show(this, Localizer.T(prompt), Localizer.T("关闭"),
+                 MessageBoxButton.OKCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel) != MessageBoxResult.OK;
+            if (!e.Cancel && preferences.AutoSaveOnExit) e.Cancel = !SaveDocument(false, false);
         }
     }
 }

@@ -88,4 +88,18 @@
   <text key="配置目录包含链接，未删除配置。">Settings were not deleted because the settings folder contains links.</text>
   <text key="配置目录包含链接。">The settings folder contains links.</text>
   <text key="无法读取安装信息，错误代码：">Unable to read installation information. Error code: </text>
+  <text key="文件">File</text>
+  <text key="保存设置">Save settings</text>
+  <text key="退出应用程序时自动保存">Automatically save when exiting</text>
+  <text key="保存路径">Save folder</text>
+  <text key="浏览…">Browse…</text>
+  <text key="已保存到：">Saved to:</text>
+  <text key="保存白板失败：">Could not save the board:</text>
+  <text key="打开白板">Open board</text>
+  <text key="打开白板失败：">Could not open the board:</text>
+  <text key="打开文件前保存当前白板吗？">Save the current board before opening the file?</text>
+  <text key="另存为">Save as</text>
+  <text key="确定退出应用程序吗？">Exit the application?</text>
+  <text key="请等待填色完成后再保存。">Please wait for the fill operation to finish before saving.</text>
+  <text key="追加后将超过 100 页上限，无法打开此文件。">This file cannot be opened because appending its pages would exceed the 100-page limit.</text>
 </translations>

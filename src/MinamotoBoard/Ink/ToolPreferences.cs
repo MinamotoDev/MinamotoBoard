@@ -34,6 +34,18 @@ namespace MinamotoBoard.Ink
         public bool BucketEnabled;
         public bool AdaptiveEraser;
         public bool StandardEraser;
+        public bool AutoSaveOnExit;
+        public string SaveDirectory;
+        public static string DefaultSaveDirectory
+        {
+            get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "MinamotoDev", "Board", "Saves"); }
+        }
+        public string GetSaveDirectory()
+        {
+            string path = string.IsNullOrWhiteSpace(SaveDirectory) ? DefaultSaveDirectory : Environment.ExpandEnvironmentVariables(SaveDirectory.Trim());
+            if (!Path.IsPathRooted(path)) throw new ArgumentException("An absolute folder path is required.");
+            return Path.GetFullPath(path);
+        }
         public double WindowWidth = 1280, WindowHeight = 720;
         public List<ToolPreference> Tools = new List<ToolPreference>();
         public List<InstrumentState> Instruments = new List<InstrumentState>();

@@ -1,5 +1,5 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
- <Package Name="MinamotoBoard" Manufacturer="MinamotoDev" Version="0.8.0" Language="!(loc.BoardLanguage)"
+ <Package Name="MinamotoBoard" Manufacturer="MinamotoDev" Version="0.9.0" Language="!(loc.BoardLanguage)"
           UpgradeCode="8D1AF8D5-305C-4670-9E17-A0DB4FB394B3" Scope="perMachine" InstallerVersion="500" Codepage="65001">
   <SummaryInformation Codepage="0" Description="MinamotoBoard" Manufacturer="MinamotoDev" Keywords="Installer" Comments="MinamotoBoard installer" />
   <MajorUpgrade AllowSameVersionUpgrades="yes" IgnoreLanguage="yes" Schedule="afterInstallInitialize" DowngradeErrorMessage="!(loc.BoardNewerVersion)" />
@@ -59,11 +59,23 @@
       </RegistryKey>
      </Component>
      <Component Id="ApplicationShortcut" Guid="E90AA183-DF79-4D63-9B36-20BB2F323414">
-      <Shortcut Id="StartMenuShortcut" Directory="ApplicationMenuFolder" Name="MinamotoBoard" Target="[#BoardExe]" WorkingDirectory="INSTALLFOLDER" Advertise="no" Icon="BoardIcon.exe" IconIndex="0" />
+      <Shortcut Id="StartMenuShortcut" Directory="ApplicationMenuFolder" Name="Minamoto Board" Target="[#BoardExe]" WorkingDirectory="INSTALLFOLDER" Advertise="no" Icon="BoardIcon.exe" IconIndex="0" />
       <RegistryValue Root="HKLM" Key="Software\MinamotoDev\Board" Name="InstallDirectory" Type="string" Value="[INSTALLFOLDER]" KeyPath="yes" />
      </Component>
      <Component Id="ApplicationConfig" Guid="88C5BFD9-2DCE-4B01-8021-2F91E745D05C">
       <File Source="$(var.AppSource)\MinamotoBoard.exe.config" KeyPath="yes" />
+     </Component>
+     <Component Id="BoardDocumentAssociation" Guid="*">
+      <RegistryValue Root="HKLM" Key="Software\Classes\app.minamotodev.board.document" Type="string" Value="MinamotoBoard document" KeyPath="yes" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\app.minamotodev.board.document\DefaultIcon" Type="string" Value="&quot;[#BoardExe]&quot;,0" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\app.minamotodev.board.document\shell" Type="string" Value="open" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\app.minamotodev.board.document\shell\open\command" Type="string" Value="&quot;[#BoardExe]&quot; &quot;%1&quot;" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\.mboard" Type="string" Value="app.minamotodev.board.document" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\.mboard\OpenWithProgids" Name="app.minamotodev.board.document" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\MinamotoDev\Board\Capabilities" Name="ApplicationName" Type="string" Value="MinamotoBoard" />
+      <RegistryValue Root="HKLM" Key="Software\MinamotoDev\Board\Capabilities" Name="ApplicationDescription" Type="string" Value="MinamotoBoard" />
+      <RegistryValue Root="HKLM" Key="Software\MinamotoDev\Board\Capabilities\FileAssociations" Name=".mboard" Type="string" Value="app.minamotodev.board.document" />
+      <RegistryValue Root="HKLM" Key="Software\RegisteredApplications" Name="MinamotoBoard" Type="string" Value="Software\MinamotoDev\Board\Capabilities" />
      </Component>
      <Component Id="PluginApi" Guid="580821B9-C4B7-49F0-A699-EB2BBEAF3637">
       <File Source="$(var.AppSource)\MinamotoBoard.PluginApi.dll" KeyPath="yes" />
@@ -87,7 +99,7 @@
    </Directory>
   </StandardDirectory>
   <StandardDirectory Id="ProgramMenuFolder">
-   <Directory Id="ApplicationMenuFolder" Name="MinamotoBoard">
+   <Directory Id="ApplicationMenuFolder" Name="Minamoto Board">
     <Component Id="MenuFolder" Guid="F2BFCFF6-E7E6-4F7B-A9AE-ECAADBF4994A">
      <RemoveFolder Id="RemoveMenuFolder" On="uninstall" />
      <RegistryValue Root="HKLM" Key="Software\MinamotoDev\Board" Name="Installed" Type="integer" Value="1" KeyPath="yes" />
@@ -96,7 +108,8 @@
   </StandardDirectory>
   <Feature Id="Board" Title="MinamotoBoard" Level="1">
    <ComponentRef Id="MainExecutable" /><ComponentRef Id="ApplicationShortcut" /><ComponentRef Id="ApplicationConfig" />
-   <ComponentRef Id="Uninstaller" /><ComponentRef Id="UninstallRegistration" />
+    <ComponentRef Id="Uninstaller" /><ComponentRef Id="UninstallRegistration" />
+    <ComponentRef Id="BoardDocumentAssociation" />
    <ComponentRef Id="PluginApi" /><ComponentRef Id="Instructions" />
    <ComponentRef Id="PluginInstructions" /><ComponentRef Id="MenuFolder" />
    <ComponentRef Id="ProjectLicense" /><ComponentRef Id="ThirdPartyNotices" /><ComponentRef Id="InstallerUiLicense" />

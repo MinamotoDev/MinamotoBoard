@@ -88,4 +88,18 @@
   <text key="配置目录包含链接，未删除配置。">設定資料夾包含連結，設定未刪除。</text>
   <text key="配置目录包含链接。">設定資料夾包含連結。</text>
   <text key="无法读取安装信息，错误代码：">無法讀取安裝資訊，錯誤代碼：</text>
+  <text key="文件">檔案</text>
+  <text key="保存设置">儲存設定</text>
+  <text key="退出应用程序时自动保存">結束應用程式時自動儲存</text>
+  <text key="保存路径">儲存路徑</text>
+  <text key="浏览…">瀏覽…</text>
+  <text key="已保存到：">已儲存至：</text>
+  <text key="保存白板失败：">儲存白板失敗：</text>
+  <text key="打开白板">開啟白板</text>
+  <text key="打开白板失败：">開啟白板失敗：</text>
+  <text key="打开文件前保存当前白板吗？">開啟檔案前要儲存目前的白板嗎？</text>
+  <text key="另存为">另存新檔</text>
+  <text key="确定退出应用程序吗？">確定結束應用程式嗎？</text>
+  <text key="请等待填色完成后再保存。">請等待填色完成後再儲存。</text>
+  <text key="追加后将超过 100 页上限，无法打开此文件。">附加後將超過 100 頁上限，無法開啟此檔案。</text>
 </translations>

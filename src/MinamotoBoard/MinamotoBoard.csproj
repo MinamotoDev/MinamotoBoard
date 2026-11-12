@@ -28,15 +28,20 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <ApplicationDefinition Include="App.xaml"><Generator>MSBuild:Compile</Generator></ApplicationDefinition>
     <Page Include="UI\MainWindow.xaml"><Generator>MSBuild:Compile</Generator></Page>
     <Compile Include="App.xaml.cs"><DependentUpon>App.xaml</DependentUpon></Compile>
+    <Compile Include="SingleInstance.cs" />
     <Compile Include="UI\MainWindow.xaml.cs"><DependentUpon>MainWindow.xaml</DependentUpon></Compile>
     <Compile Include="UI\MainWindow.Tools.cs" />
     <Compile Include="UI\MainWindow.Eraser.cs" />
+    <Compile Include="UI\MainWindow.Files.cs" />
     <Compile Include="UI\ToolbarIcons.cs" />
     <Compile Include="Localization\Localizer.cs" />
     <EmbeddedResource Include="Localization\zh-CN.xml"><LogicalName>MinamotoBoard.Localization.zh-CN.xml</LogicalName></EmbeddedResource>
@@ -53,6 +58,7 @@
     <Compile Include="Ink\InstrumentLayer.cs" />
     <Compile Include="Ink\RegionFill.cs" />
     <Compile Include="Models\BoardDocument.cs" />
+    <Compile Include="Models\BoardFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Plugins\PluginHost.cs" Condition="'$(NoPlugins)' != 'true'" />
     <Compile Include="Plugins\PluginManager.cs" Condition="'$(NoPlugins)' != 'true'" />

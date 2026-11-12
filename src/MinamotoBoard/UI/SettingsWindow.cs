@@ -67,6 +67,10 @@ namespace MinamotoBoard.UI
             TabItem aboutTab = new TabItem { Content = CreateAboutPage() };
             BindText(delegate { aboutTab.Header = Localizer.T("关于"); });
             sections.Items.Add(aboutTab);
+            TabItem fileTab = new TabItem { Content = CreateFilePage(preferences) };
+            BindText(delegate { fileTab.Header = Localizer.T("文件"); });
+            sections.Items.Insert(0, fileTab);
+            sections.SelectedIndex = 0;
             RefreshLanguage();
             Localizer.LanguageChanged += RefreshLanguage;
             Closed += delegate { Localizer.LanguageChanged -= RefreshLanguage; };
@@ -79,7 +83,7 @@ namespace MinamotoBoard.UI
             DockPanel layout = new DockPanel { Margin = new Thickness(12) };
             TabItem pluginTab = new TabItem { Content = layout };
             BindText(delegate { pluginTab.Header = Localizer.T("插件"); });
-            sections.Items.Insert(1, pluginTab);
+            sections.Items.Insert(2, pluginTab);
             sections.SelectedIndex = 0;
             TextBlock info = new TextBlock {
                 TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 12, 0, 12) };
@@ -132,6 +136,52 @@ namespace MinamotoBoard.UI
 #endif
 
         private readonly Dictionary<TextBlock, Action> messageBindings = new Dictionary<TextBlock, Action>();
+        private UIElement CreateFilePage(ToolPreferences preferences)
+        {
+            StackPanel page = new StackPanel { Margin = new Thickness(20) };
+            StackPanel commands = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 24) };
+            Button open = new Button { MinHeight = 36, Padding = new Thickness(12, 4, 12, 4) };
+            Button saveAs = new Button { MinHeight = 36, Padding = new Thickness(12, 4, 12, 4), Margin = new Thickness(8, 0, 0, 0) };
+            BindText(delegate { open.Content = Localizer.T("打开白板"); saveAs.Content = Localizer.T("另存为"); });
+            open.Click += delegate { MainWindow board = Owner as MainWindow; if (board != null) { Close(); board.OpenDocument(); } };
+            saveAs.Click += delegate { MainWindow board = Owner as MainWindow; if (board != null) { Close(); board.SaveDocument(true, true); } };
+            commands.Children.Add(open); commands.Children.Add(saveAs); page.Children.Add(commands);
+            TextBlock heading = new TextBlock { FontSize = 16, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 16) };
+            BindText(delegate { heading.Text = Localizer.T("保存设置"); }); page.Children.Add(heading);
+            CheckBox automatic = new CheckBox { IsChecked = preferences.AutoSaveOnExit, MinHeight = 36, VerticalContentAlignment = VerticalAlignment.Center };
+            BindText(delegate { automatic.Content = Localizer.T("退出应用程序时自动保存"); });
+            automatic.Checked += delegate { preferences.AutoSaveOnExit = true; preferences.Save(); };
+            automatic.Unchecked += delegate { preferences.AutoSaveOnExit = false; preferences.Save(); };
+            page.Children.Add(automatic);
+            TextBlock label = new TextBlock { Margin = new Thickness(0, 16, 0, 8) };
+            BindText(delegate { label.Text = Localizer.T("保存路径"); }); page.Children.Add(label);
+            DockPanel row = new DockPanel();
+            Button browse = new Button { MinHeight = 36, Padding = new Thickness(12, 4, 12, 4), Margin = new Thickness(8, 0, 0, 0) };
+            BindText(delegate { browse.Content = Localizer.T("浏览…"); });
+            DockPanel.SetDock(browse, Dock.Right); row.Children.Add(browse);
+            TextBox path = new TextBox { IsReadOnly = true, MinHeight = 36, VerticalContentAlignment = VerticalAlignment.Center,
+                Text = string.IsNullOrWhiteSpace(preferences.SaveDirectory) ? ToolPreferences.DefaultSaveDirectory : preferences.SaveDirectory,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto };
+            BindText(delegate { AutomationProperties.SetName(path, Localizer.T("保存路径")); });
+            row.Children.Add(path); page.Children.Add(row);
+            browse.Click += delegate
+            {
+                using (System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog())
+                {
+                    dialog.Description = Localizer.T("保存路径"); dialog.ShowNewFolderButton = true;
+                    if (Directory.Exists(path.Text)) dialog.SelectedPath = path.Text;
+                    if (dialog.ShowDialog(new FolderDialogOwner(this)) != System.Windows.Forms.DialogResult.OK) return;
+                    preferences.SaveDirectory = dialog.SelectedPath; path.Text = dialog.SelectedPath; preferences.Save();
+                }
+            };
+            return new ScrollViewer { Content = page, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+        }
+
+        private sealed class FolderDialogOwner : System.Windows.Forms.IWin32Window
+        {
+            public IntPtr Handle { get; private set; }
+            public FolderDialogOwner(Window window) { Handle = new System.Windows.Interop.WindowInteropHelper(window).Handle; }
+        }
         private void BindMessage(TextBlock control, string key, string detail)
         {
             Action previous;

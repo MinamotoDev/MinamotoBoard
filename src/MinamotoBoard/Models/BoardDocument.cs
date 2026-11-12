@@ -24,9 +24,25 @@ namespace MinamotoBoard.Models
         public int CurrentIndex { get; private set; }
         public int Count { get { return pages.Count; } }
         public BoardPage CurrentPage { get { return pages[CurrentIndex]; } }
+        public IEnumerable<BoardPage> Pages { get { return pages.AsReadOnly(); } }
+        public void ReplacePages(IList<BoardPage> loaded, int currentIndex)
+        {
+            if (loaded == null || loaded.Count == 0 || loaded.Count > MaximumPages || currentIndex < 0 || currentIndex >= loaded.Count)
+                throw new System.ArgumentException("Invalid document pages.");
+            pages.Clear(); pages.AddRange(loaded); CurrentIndex = currentIndex;
+        }
         public bool CanMovePrevious { get { return CurrentIndex > 0; } }
         public bool CanMoveNext { get { return CurrentIndex + 1 < Count; } }
         public bool CanAddPage { get { return Count < MaximumPages; } }
+
+        public bool AppendPages(IList<BoardPage> loaded)
+        {
+            if (loaded == null || loaded.Count == 0 || loaded.Count > MaximumPages - Count) return false;
+            int first = Count;
+            pages.AddRange(loaded);
+            CurrentIndex = first;
+            return true;
+        }
 
         public bool HasInk
         {

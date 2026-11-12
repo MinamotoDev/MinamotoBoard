@@ -123,6 +123,7 @@ namespace MinamotoBoard.UI
             redoButton = IconButton(ToolbarIcons.Glyph("\uE7A6"), "重做", OnRedo);
             IconButton(ToolbarIcons.Glyph("\uE70D"), "收起工具栏", OnHideToolbar);
             settingsButton = IconButton(ToolbarIcons.Glyph("\uE713"), "设置", OnSettings);
+            IconButton(ToolbarIcons.Glyph("\uE74E"), "保存", OnSaveDocument);
             IconButton(ToolbarIcons.Glyph("\uE711"), "关闭", OnClose);
             BindOptionsGesture(ShowToolbarButton, delegate { return activeTool; }, true);
             BindAdaptiveEraser();
@@ -390,6 +391,7 @@ namespace MinamotoBoard.UI
         }
         private void OnInkChanged(object sender, StrokeCollectionChangedEventArgs e)
         {
+            documentDirty = true;
             inkRevision++;
             if (historyApplying) return;
             StrokeCollection strokes = (StrokeCollection)sender;
