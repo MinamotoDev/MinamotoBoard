@@ -140,7 +140,12 @@ namespace MinamotoBoard.Ink
             geometry.Freeze(); return geometry;
         }
 
-        public override Stroke Clone() { return new LiveHighlighterStroke(StylusPoints.Clone(), DrawingAttributes.Clone(), dashed); }
+        public override Stroke Clone()
+        {
+            Stroke copy = new LiveHighlighterStroke(StylusPoints.Clone(), DrawingAttributes.Clone(), dashed);
+            foreach (Guid id in GetPropertyDataIds()) copy.AddPropertyData(id, GetPropertyData(id));
+            return copy;
+        }
     }
 
     public sealed class HighlighterCanvas : InkCanvas

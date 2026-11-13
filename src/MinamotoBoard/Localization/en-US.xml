@@ -102,4 +102,14 @@
   <text key="确定退出应用程序吗？">Exit the application?</text>
   <text key="请等待填色完成后再保存。">Please wait for the fill operation to finish before saving.</text>
   <text key="追加后将超过 100 页上限，无法打开此文件。">This file cannot be opened because appending its pages would exceed the 100-page limit.</text>
+  <text key="墨迹">Ink</text>
+  <text key="尺规">Drawing instruments</text>
+  <text key="角度捕捉辅助">Angle snapping</text>
+  <text key="墨迹吸附辅助">Snap instruments to ink</text>
+  <text key="关">Off</text>
+  <text key="开">On</text>
+  <text key="强制">Force</text>
+  <text key="1°">1°</text>
+  <text key="5°">5°</text>
+  <text key="10°">10°</text>
 </translations>

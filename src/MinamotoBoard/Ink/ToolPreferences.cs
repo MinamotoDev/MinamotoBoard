@@ -34,6 +34,8 @@ namespace MinamotoBoard.Ink
         public bool BucketEnabled;
         public bool AdaptiveEraser;
         public bool StandardEraser;
+        public int InstrumentAngleStep;
+        public int InstrumentInkSnap; // 0 off, 1 instrument lines, 2 all ink.
         public bool AutoSaveOnExit;
         public string SaveDirectory;
         public static string DefaultSaveDirectory

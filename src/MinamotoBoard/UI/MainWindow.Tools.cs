@@ -46,6 +46,7 @@ namespace MinamotoBoard.UI
                 value.Style = saved.Style == 1 && (saved.Tool == BoardTool.Pen || saved.Tool == BoardTool.Highlighter || saved.Tool == BoardTool.Eraser) ? 1 : 0;
             }
             Instruments.ImportStates(preferences.Instruments);
+            Instruments.ConfigureAssistance(preferences, delegate { return Board.Strokes; });
             if (ToolPreferences.Finite(preferences.WindowWidth)) Width = Math.Max(MinWidth, Math.Min(SystemParameters.VirtualScreenWidth, preferences.WindowWidth));
             if (ToolPreferences.Finite(preferences.WindowHeight)) Height = Math.Max(MinHeight, Math.Min(SystemParameters.VirtualScreenHeight, preferences.WindowHeight));
             ApplyBetaToolVisibility();

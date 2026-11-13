@@ -12,6 +12,13 @@ namespace MinamotoBoard.Ink
         private readonly Dictionary<BoardTool, InstrumentState> templates = new Dictionary<BoardTool, InstrumentState>();
         private BoardTool writingTool = BoardTool.Pen;
         private DrawingToolOptions writingOptions = new DrawingToolOptions();
+        private ToolPreferences assistance;
+        private Func<StrokeCollection> inkSource;
+        public void ConfigureAssistance(ToolPreferences settings, Func<StrokeCollection> source)
+        {
+            assistance = settings; inkSource = source;
+            foreach (InstrumentOverlay item in Children) item.ConfigureAssistance(settings, source);
+        }
         public event Action<StrokeCollection> InkCreated;
         public event Action<bool> PointerInput;
         public bool IsInteracting
@@ -41,6 +48,7 @@ namespace MinamotoBoard.Ink
                 { state.X += 28; state.Y += 28; }
             }
             InstrumentOverlay item = new InstrumentOverlay();
+            item.ConfigureAssistance(assistance, inkSource);
             item.ImportStates(new List<InstrumentState> { state });
             item.InkCreated += delegate(StrokeCollection strokes) { if (InkCreated != null) InkCreated(strokes); };
             item.PointerInput += delegate(bool touch) { if (PointerInput != null) PointerInput(touch); };

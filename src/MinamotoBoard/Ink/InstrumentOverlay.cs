@@ -29,6 +29,12 @@ namespace MinamotoBoard.Ink
         private Point origin, previous;
         private Point edgeA, edgeB;
         private double lastAngle, arcStart, swept;
+        private double originalAngle;
+        private ToolPreferences assistance;
+        private Func<StrokeCollection> inkSource;
+        private InstrumentSnap snap;
+        public void ConfigureAssistance(ToolPreferences settings, Func<StrokeCollection> source)
+        { assistance = settings; inkSource = source; }
         private readonly List<Point> preview = new List<Point>();
         public event Action<StrokeCollection> InkCreated;
         public event Action StateChanged;
@@ -87,6 +93,7 @@ namespace MinamotoBoard.Ink
         {
             bool changed = pointer != 0;
             pointer = 0; operation = 0; preview.Clear(); liveStroke = null;
+            snap = null;
             if (IsMouseCaptured) ReleaseMouseCapture();
             if (IsStylusCaptured) ReleaseStylusCapture();
             if (touch != null) { TouchDevice old = touch; touch = null; old.Capture(null); }
@@ -227,6 +234,7 @@ namespace MinamotoBoard.Ink
         {
             if (!active || pointer != 0) return false;
             pointer = kind; origin = p; previous = center; preview.Clear();
+            originalAngle = angle;
             if (PointerInput != null) PointerInput(kind == 3);
             Point local = Local(p);
             if ((local - DeleteHandle).Length <= 16) { operation = 4; InvalidateVisual(); return true; }
@@ -258,8 +266,11 @@ namespace MinamotoBoard.Ink
             if (operation == 3 && preview.Count > 0)
             {
                 liveStroke = HighlighterCanvas.CreateToolStroke(preview[0], options, true);
+                if (tool != BoardTool.Compass) liveStroke.AddPropertyData(InstrumentSnap.LineMarker, 1);
                 if (InkCreated != null) InkCreated(new StrokeCollection { liveStroke });
             }
+            if ((operation == 1 || operation == 2) && assistance != null && assistance.InstrumentInkSnap > 0 && inkSource != null)
+                snap = new InstrumentSnap(inkSource(), assistance.InstrumentInkSnap == 2);
             InvalidateVisual(); return true;
         }
 
@@ -268,17 +279,21 @@ namespace MinamotoBoard.Ink
             if (pointer == 0 || operation == 4) return;
             if (operation == 1)
             {
+                angle = originalAngle;
                 center = previous + (p - origin);
                 center.X = Math.Max(15, Math.Min(ActualWidth - 15, center.X));
                 center.Y = Math.Max(15, Math.Min(ActualHeight - 15, center.Y));
             }
             else if (operation == 2)
             {
+                center = previous;
                 double worldAngle = Math.Atan2(p.Y - center.Y, p.X - center.X) * 180 / Math.PI;
                 double distance = (p - center).Length;
                 if (tool == BoardTool.Compass) { radius = distance; angle = worldAngle; }
                 else if (tool == BoardTool.Ruler) { length = Math.Max(640, (distance - 24) * 2); angle = worldAngle; }
                 else { triangleScale = Math.Max(1, distance / Math.Sqrt(176 * 176 + 110 * 110)); angle = worldAngle - Math.Atan2(110, 176) * 180 / Math.PI; }
+                int step = assistance == null ? 0 : assistance.InstrumentAngleStep;
+                if (step == 1 || step == 5 || step == 10) angle = Math.Round(angle / step, MidpointRounding.AwayFromZero) * step;
             }
             else if (tool == BoardTool.Compass)
             {
@@ -298,6 +313,16 @@ namespace MinamotoBoard.Ink
                 swept = allowed;
             }
             else if (operation == 3) AddInkPoint(World(Project(Local(p), edgeA, edgeB)));
+            if ((operation == 1 || operation == 2) && snap != null)
+            {
+                if (tool == BoardTool.Compass) center = snap.SnapPoint(center);
+                else
+                {
+                    Point[] vertices = Vertices();
+                    for (int i = 0; i < vertices.Length; i++) vertices[i] = World(vertices[i]);
+                    snap.SnapEdges(vertices, ref center, ref angle);
+                }
+            }
             InvalidateVisual();
         }
 

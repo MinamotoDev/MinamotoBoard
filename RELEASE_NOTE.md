@@ -5,7 +5,7 @@
 
 ## New Features and Bug Fixes
 
-- Added save functionality.
+- Added drawing instrument assistance features.
 
 ## System Requirements and Dependencies
 
@@ -21,7 +21,7 @@
 
 ## 新機能と不具合の修正
 
-- 保存機能を追加しました。
+- 定規・コンパスの補助機能を追加しました。
 
 ## 動作環境と依存関係
 
@@ -37,7 +37,7 @@
 
 ## 新功能和错误修复
 
-- 新增保存功能。
+- 新增尺规辅助功能。
 
 ## 配置要求和依赖
 
@@ -53,7 +53,7 @@
 
 ## 新功能與錯誤修正
 
-- 新增儲存功能。
+- 新增尺規輔助功能。
 
 ## 系統需求與相依性
 

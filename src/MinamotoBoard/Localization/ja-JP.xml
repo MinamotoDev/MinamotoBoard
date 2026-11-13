@@ -102,4 +102,14 @@
   <text key="确定退出应用程序吗？">アプリを終了しますか？</text>
   <text key="请等待填色完成后再保存。">塗りつぶしが完了してから保存してください。</text>
   <text key="追加后将超过 100 页上限，无法打开此文件。">ページを追加すると上限の 100 ページを超えるため、このファイルを開けません。</text>
+  <text key="墨迹">インク</text>
+  <text key="尺规">定規・コンパス</text>
+  <text key="角度捕捉辅助">角度スナップ</text>
+  <text key="墨迹吸附辅助">インクへの吸着補助</text>
+  <text key="关">オフ</text>
+  <text key="开">オン</text>
+  <text key="强制">強制</text>
+  <text key="1°">1°</text>
+  <text key="5°">5°</text>
+  <text key="10°">10°</text>
 </translations>

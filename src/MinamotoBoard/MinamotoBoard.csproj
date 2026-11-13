@@ -38,6 +38,7 @@
     <Page Include="UI\MainWindow.xaml"><Generator>MSBuild:Compile</Generator></Page>
     <Compile Include="App.xaml.cs"><DependentUpon>App.xaml</DependentUpon></Compile>
     <Compile Include="SingleInstance.cs" />
+    <Compile Include="Ink\InstrumentSnap.cs" />
     <Compile Include="UI\MainWindow.xaml.cs"><DependentUpon>MainWindow.xaml</DependentUpon></Compile>
     <Compile Include="UI\MainWindow.Tools.cs" />
     <Compile Include="UI\MainWindow.Eraser.cs" />

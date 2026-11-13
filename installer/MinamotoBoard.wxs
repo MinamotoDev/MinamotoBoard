@@ -1,5 +1,5 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
- <Package Name="MinamotoBoard" Manufacturer="MinamotoDev" Version="0.9.0" Language="!(loc.BoardLanguage)"
+ <Package Name="MinamotoBoard" Manufacturer="MinamotoDev" Version="0.10.0" Language="!(loc.BoardLanguage)"
           UpgradeCode="8D1AF8D5-305C-4670-9E17-A0DB4FB394B3" Scope="perMachine" InstallerVersion="500" Codepage="65001">
   <SummaryInformation Codepage="0" Description="MinamotoBoard" Manufacturer="MinamotoDev" Keywords="Installer" Comments="MinamotoBoard installer" />
   <MajorUpgrade AllowSameVersionUpgrades="yes" IgnoreLanguage="yes" Schedule="afterInstallInitialize" DowngradeErrorMessage="!(loc.BoardNewerVersion)" />

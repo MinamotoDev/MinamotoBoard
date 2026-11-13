@@ -102,4 +102,14 @@
   <text key="确定退出应用程序吗？">確定結束應用程式嗎？</text>
   <text key="请等待填色完成后再保存。">請等待填色完成後再儲存。</text>
   <text key="追加后将超过 100 页上限，无法打开此文件。">附加後將超過 100 頁上限，無法開啟此檔案。</text>
+  <text key="墨迹">筆跡</text>
+  <text key="尺规">尺規</text>
+  <text key="角度捕捉辅助">角度鎖定輔助</text>
+  <text key="墨迹吸附辅助">筆跡吸附輔助</text>
+  <text key="关">關</text>
+  <text key="开">開</text>
+  <text key="强制">強制</text>
+  <text key="1°">1°</text>
+  <text key="5°">5°</text>
+  <text key="10°">10°</text>
 </translations>

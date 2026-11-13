@@ -193,6 +193,7 @@ namespace MinamotoBoard.UI
         private UIElement CreateToolsPage(ToolPreferences preferences, Action toolsChanged)
         {
             StackPanel page = new StackPanel { Margin = new Thickness(20) };
+            page.Children.Add(ToolHeading("墨迹", 0));
             page.Children.Add(ToolSwitch("荧光笔", preferences.HighlighterEnabled, delegate(bool enabled)
             {
                 preferences.HighlighterEnabled = enabled; toolsChanged();
@@ -236,7 +237,51 @@ namespace MinamotoBoard.UI
                 toolsChanged();
             };
             page.Children.Add(eraserRow);
-            return page;
+            page.Children.Add(ToolHeading("尺规", 20));
+            int[] steps = { 0, 1, 5, 10 };
+            page.Children.Add(ToolChoice("角度捕捉辅助", new[] { "关", "1°", "5°", "10°" },
+                Math.Max(0, Array.IndexOf(steps, preferences.InstrumentAngleStep)), delegate(int index)
+                { preferences.InstrumentAngleStep = steps[index]; toolsChanged(); }));
+            page.Children.Add(ToolChoice("墨迹吸附辅助", new[] { "关", "开", "强制" },
+                Math.Max(0, Math.Min(2, preferences.InstrumentInkSnap)), delegate(int index)
+                { preferences.InstrumentInkSnap = index; toolsChanged(); }));
+            return new ScrollViewer { Content = page, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+        }
+
+        private TextBlock ToolHeading(string key, double top)
+        {
+            TextBlock heading = new TextBlock { FontSize = 18, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, top, 0, 8) };
+            BindText(delegate { heading.Text = Localizer.T(key); });
+            return heading;
+        }
+
+        private UIElement ToolChoice(string key, string[] choices, int selected, Action<int> changed)
+        {
+            DockPanel row = new DockPanel { Margin = new Thickness(0, 8, 0, 8) };
+            ComboBox combo = new ComboBox { Width = 160, MinHeight = 36, Margin = new Thickness(12, 0, 0, 0),
+                VerticalContentAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Right };
+            DockPanel.SetDock(combo, Dock.Right); row.Children.Add(combo);
+            TextBlock label = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
+            row.Children.Add(label);
+            bool refreshing = false;
+            BindText(delegate
+            {
+                refreshing = true;
+                try
+                {
+                    label.Text = Localizer.T(key); AutomationProperties.SetName(combo, Localizer.T(key));
+                    combo.Items.Clear();
+                    foreach (string choice in choices) combo.Items.Add(new ComboBoxItem { Content = Localizer.T(choice), MinHeight = 32 });
+                    combo.SelectedIndex = selected;
+                }
+                finally { refreshing = false; }
+            });
+            combo.SelectionChanged += delegate
+            {
+                if (refreshing || combo.SelectedIndex < 0) return;
+                selected = combo.SelectedIndex; changed(selected);
+            };
+            return row;
         }
 
         private UIElement ToolSwitch(string key, bool enabled, Action<bool> change)

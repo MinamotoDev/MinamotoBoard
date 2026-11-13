@@ -102,4 +102,14 @@
   <text key="确定退出应用程序吗？">确定退出应用程序吗？</text>
   <text key="请等待填色完成后再保存。">请等待填色完成后再保存。</text>
   <text key="追加后将超过 100 页上限，无法打开此文件。">追加后将超过 100 页上限，无法打开此文件。</text>
+  <text key="墨迹">墨迹</text>
+  <text key="尺规">尺规</text>
+  <text key="角度捕捉辅助">角度捕捉辅助</text>
+  <text key="墨迹吸附辅助">墨迹吸附辅助</text>
+  <text key="关">关</text>
+  <text key="开">开</text>
+  <text key="强制">强制</text>
+  <text key="1°">1°</text>
+  <text key="5°">5°</text>
+  <text key="10°">10°</text>
 </translations>
