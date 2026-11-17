@@ -245,6 +245,9 @@ namespace MinamotoBoard.UI
             page.Children.Add(ToolChoice("墨迹吸附辅助", new[] { "关", "开", "强制" },
                 Math.Max(0, Math.Min(2, preferences.InstrumentInkSnap)), delegate(int index)
                 { preferences.InstrumentInkSnap = index; toolsChanged(); }));
+            page.Children.Add(ToolChoice("防止误触", new[] { "关", "开", "严格", "强制" },
+                Math.Max(0, Math.Min(3, preferences.InstrumentTouchGuard)), delegate(int index)
+                { preferences.InstrumentTouchGuard = index; toolsChanged(); }, true));
             return new ScrollViewer { Content = page, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
         }
 
@@ -255,7 +258,7 @@ namespace MinamotoBoard.UI
             return heading;
         }
 
-        private UIElement ToolChoice(string key, string[] choices, int selected, Action<int> changed)
+        private UIElement ToolChoice(string key, string[] choices, int selected, Action<int> changed, bool debugExtras = false)
         {
             DockPanel row = new DockPanel { Margin = new Thickness(0, 8, 0, 8) };
             ComboBox combo = new ComboBox { Width = 160, MinHeight = 36, Margin = new Thickness(12, 0, 0, 0),
@@ -271,8 +274,12 @@ namespace MinamotoBoard.UI
                 {
                     label.Text = Localizer.T(key); AutomationProperties.SetName(combo, Localizer.T(key));
                     combo.Items.Clear();
-                    foreach (string choice in choices) combo.Items.Add(new ComboBoxItem { Content = Localizer.T(choice), MinHeight = 32 });
-                    combo.SelectedIndex = selected;
+                    MainWindow board = Owner as MainWindow;
+                    bool debug = board != null && board.DebugMode;
+                    for (int i = 0; i < choices.Length; i++)
+                        combo.Items.Add(new ComboBoxItem { Content = Localizer.T(choices[i]), MinHeight = 32,
+                            Visibility = debugExtras && i >= 2 && !debug ? Visibility.Collapsed : Visibility.Visible });
+                    combo.SelectedIndex = debugExtras && !debug ? Math.Min(1, selected) : selected;
                 }
                 finally { refreshing = false; }
             });
@@ -281,6 +288,7 @@ namespace MinamotoBoard.UI
                 if (refreshing || combo.SelectedIndex < 0) return;
                 selected = combo.SelectedIndex; changed(selected);
             };
+            if (debugExtras) Loaded += delegate { RefreshLanguage(); };
             return row;
         }
 
@@ -455,6 +463,7 @@ namespace MinamotoBoard.UI
                     {
                         board.EnableDebugMode();
                         labelDebugMode.Visibility = Visibility.Visible;
+                        RefreshLanguage();
                     }
                 };
                 image.TouchDown += delegate(object sender, System.Windows.Input.TouchEventArgs e)

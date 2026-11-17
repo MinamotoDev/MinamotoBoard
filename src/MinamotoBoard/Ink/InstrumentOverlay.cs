@@ -33,6 +33,9 @@ namespace MinamotoBoard.Ink
         private ToolPreferences assistance;
         private Func<StrokeCollection> inkSource;
         private InstrumentSnap snap;
+        internal Func<bool> ManipulationBlocked;
+        private bool guardGesture;
+        public bool IsManipulating { get { return guardGesture && pointer != 0 && operation != 3; } }
         public void ConfigureAssistance(ToolPreferences settings, Func<StrokeCollection> source)
         { assistance = settings; inkSource = source; }
         private readonly List<Point> preview = new List<Point>();
@@ -94,6 +97,7 @@ namespace MinamotoBoard.Ink
             bool changed = pointer != 0;
             pointer = 0; operation = 0; preview.Clear(); liveStroke = null;
             snap = null;
+            guardGesture = false;
             if (IsMouseCaptured) ReleaseMouseCapture();
             if (IsStylusCaptured) ReleaseStylusCapture();
             if (touch != null) { TouchDevice old = touch; touch = null; old.Capture(null); }
@@ -233,6 +237,8 @@ namespace MinamotoBoard.Ink
         private bool Begin(Point p, int kind)
         {
             if (!active || pointer != 0) return false;
+            if (ManipulationBlocked != null && ManipulationBlocked()) return false;
+            guardGesture = assistance != null && assistance.InstrumentTouchGuard > 0;
             pointer = kind; origin = p; previous = center; preview.Clear();
             originalAngle = angle;
             if (PointerInput != null) PointerInput(kind == 3);
@@ -259,24 +265,45 @@ namespace MinamotoBoard.Ink
                     double distance = (Project(local, a, b) - local).Length;
                     if (distance < best) { best = distance; edgeA = a; edgeB = b; }
                 }
-                operation = best <= 12 ? 3 : 1;
+                // Keep the inside of the guide draggable, even near an edge.
+                operation = best <= 12 && (!guardGesture || !Body().FillContains(local)) ? 3 : 1;
                 if (operation == 3) preview.Add(World(Project(local, edgeA, edgeB)));
             }
             if (operation == 3 && writingTool != BoardTool.Pen && writingTool != BoardTool.Highlighter) { operation = 1; preview.Clear(); }
-            if (operation == 3 && preview.Count > 0)
-            {
-                liveStroke = HighlighterCanvas.CreateToolStroke(preview[0], options, true);
-                if (tool != BoardTool.Compass) liveStroke.AddPropertyData(InstrumentSnap.LineMarker, 1);
-                if (InkCreated != null) InkCreated(new StrokeCollection { liveStroke });
-            }
+            if (operation == 3 && preview.Count > 0 && !guardGesture) StartInk();
             if ((operation == 1 || operation == 2) && assistance != null && assistance.InstrumentInkSnap > 0 && inkSource != null)
                 snap = new InstrumentSnap(inkSource(), assistance.InstrumentInkSnap == 2);
             InvalidateVisual(); return true;
         }
 
+        private void StartInk()
+        {
+            if (liveStroke == null && preview.Count > 0)
+            {
+                liveStroke = HighlighterCanvas.CreateToolStroke(preview[0], options, true);
+                if (tool != BoardTool.Compass) liveStroke.AddPropertyData(InstrumentSnap.LineMarker, 1);
+                if (InkCreated != null) InkCreated(new StrokeCollection { liveStroke });
+            }
+        }
+
         private void Move(Point p)
         {
             if (pointer == 0 || operation == 4) return;
+            if (guardGesture && operation == 3 && liveStroke == null && tool != BoardTool.Compass)
+            {
+                Vector edge = edgeB - edgeA; edge.Normalize();
+                Vector movement = Local(p) - Local(origin);
+                double along = Math.Abs(Vector.Multiply(movement, edge));
+                double across = Math.Abs(Vector.CrossProduct(movement, edge));
+                double threshold = pointer == 3 ? 10 : 4;
+                // An ambiguous edge press moving across the guide is a drag, not a line.
+                if (across >= threshold && across > along * 1.25)
+                {
+                    operation = 1; preview.Clear();
+                    if (assistance.InstrumentInkSnap > 0 && inkSource != null)
+                        snap = new InstrumentSnap(inkSource(), assistance.InstrumentInkSnap == 2);
+                }
+            }
             if (operation == 1)
             {
                 angle = originalAngle;
@@ -328,6 +355,12 @@ namespace MinamotoBoard.Ink
 
         private void AddInkPoint(Point point)
         {
+            if (liveStroke == null && guardGesture && preview.Count > 0)
+            {
+                double threshold = pointer == 3 ? 10 : 4;
+                if ((point - preview[0]).Length < threshold) return;
+                StartInk();
+            }
             if (liveStroke == null) return;
             HighlighterCanvas.AppendToolPoint(liveStroke, point);
         }

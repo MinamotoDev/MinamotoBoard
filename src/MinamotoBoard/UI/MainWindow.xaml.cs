@@ -38,6 +38,7 @@ namespace MinamotoBoard.UI
             DependencyPropertyDescriptor.FromProperty(HighlighterCanvas.BackgroundProperty, typeof(HighlighterCanvas))
                 .AddValueChanged(Board, delegate { documentDirty = true; });
             tools = new InkTools(Board);
+            InitializeInstrumentTouchGuard();
             BuildToolbar(); UpdatePageControls(); TrackInk();
             Instruments.InkCreated += delegate(System.Windows.Ink.StrokeCollection strokes) { Board.Strokes.Add(strokes); };
             Instruments.PointerInput += Board.NotifyPointerInput;

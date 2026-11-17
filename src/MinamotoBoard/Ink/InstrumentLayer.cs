@@ -21,6 +21,10 @@ namespace MinamotoBoard.Ink
         }
         public event Action<StrokeCollection> InkCreated;
         public event Action<bool> PointerInput;
+        public bool IsManipulating
+        {
+            get { foreach (InstrumentOverlay item in Children) if (item.IsManipulating) return true; return false; }
+        }
         public bool IsInteracting
         {
             get { foreach (InstrumentOverlay item in Children) if (item.IsInteracting) return true; return false; }
@@ -49,6 +53,7 @@ namespace MinamotoBoard.Ink
             }
             InstrumentOverlay item = new InstrumentOverlay();
             item.ConfigureAssistance(assistance, inkSource);
+            item.ManipulationBlocked = delegate { return assistance != null && assistance.InstrumentTouchGuard > 0 && IsManipulating; };
             item.ImportStates(new List<InstrumentState> { state });
             item.InkCreated += delegate(StrokeCollection strokes) { if (InkCreated != null) InkCreated(strokes); };
             item.PointerInput += delegate(bool touch) { if (PointerInput != null) PointerInput(touch); };

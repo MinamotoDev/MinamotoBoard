@@ -36,6 +36,7 @@ namespace MinamotoBoard.Ink
         public bool StandardEraser;
         public int InstrumentAngleStep;
         public int InstrumentInkSnap; // 0 off, 1 instrument lines, 2 all ink.
+        public int InstrumentTouchGuard; // 0 off; reserved 2/3 currently behave like 1.
         public bool AutoSaveOnExit;
         public string SaveDirectory;
         public static string DefaultSaveDirectory
