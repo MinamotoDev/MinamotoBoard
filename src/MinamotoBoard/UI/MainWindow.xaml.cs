@@ -42,6 +42,10 @@ namespace MinamotoBoard.UI
             BuildToolbar(); UpdatePageControls(); TrackInk();
             Instruments.InkCreated += delegate(System.Windows.Ink.StrokeCollection strokes) { Board.Strokes.Add(strokes); };
             Instruments.PointerInput += Board.NotifyPointerInput;
+            GeometryBoard.InkCreated += delegate(System.Windows.Ink.StrokeCollection strokes) { Board.Strokes.Add(strokes); };
+            GeometryBoard.DrawingStarted += delegate { ToolOptionsPopup.IsOpen = false; BeginInkGesture(); };
+            GeometryBoard.DrawingFinished += EndInkGesture;
+            Deactivated += delegate { GeometryBoard.CancelDrawing(); };
             Instruments.SetBinding(CursorProperty, new System.Windows.Data.Binding("Cursor") { Source = Board });
             SetFullscreen(true);
             RefreshLanguage();
@@ -65,7 +69,7 @@ namespace MinamotoBoard.UI
         }
 #endif
         private bool IsWriting()
-        { return Board.IsStylusCaptured || Board.IsMouseCaptured || Board.AreAnyTouchesCaptured || Instruments.IsInteracting; }
+        { return Board.IsStylusCaptured || Board.IsMouseCaptured || Board.AreAnyTouchesCaptured || Instruments.IsInteracting || GeometryBoard.IsDrawing; }
         private void CaptureCurrentPage()
         { document.CurrentPage.Strokes = Board.Strokes; document.CurrentPage.Background = Board.Background; }
         private void ShowCurrentPage()
@@ -178,6 +182,7 @@ namespace MinamotoBoard.UI
             if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Control) { OnSaveDocument(sender, e); e.Handled = true; }
             else if (e.Key == Key.O && Keyboard.Modifiers == ModifierKeys.Control) { OpenDocument(); e.Handled = true; }
             else if (e.Key == Key.F11) { SetFullscreen(!fullscreen); e.Handled = true; }
+            else if (e.Key == Key.Escape && GeometryBoard.IsDrawing) { GeometryBoard.CancelDrawing(); e.Handled = true; }
             else if (e.Key == Key.Escape && ToolOptionsPopup.IsOpen) { ToolOptionsPopup.IsOpen = false; e.Handled = true; }
             else if (e.Key == Key.Escape && fullscreen) { SetFullscreen(false); e.Handled = true; }
             else if (e.Key == Key.Tab && Keyboard.Modifiers == ModifierKeys.Control)

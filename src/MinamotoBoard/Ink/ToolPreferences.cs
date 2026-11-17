@@ -37,6 +37,12 @@ namespace MinamotoBoard.Ink
         public int InstrumentAngleStep;
         public int InstrumentInkSnap; // 0 off, 1 instrument lines, 2 all ink.
         public int InstrumentTouchGuard; // 0 off; reserved 2/3 currently behave like 1.
+        public GeometryShape Shape2D = GeometryShape.Square;
+        public GeometryShape Shape3D = GeometryShape.Cube;
+        public bool ShapeGuides2D;
+        public bool ShapeGuides3D;
+        public bool StandardShapes2D = true;
+        public bool StandardShapes3D = true;
         public bool AutoSaveOnExit;
         public string SaveDirectory;
         public static string DefaultSaveDirectory

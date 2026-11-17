@@ -40,6 +40,10 @@
     <Compile Include="SingleInstance.cs" />
     <Compile Include="Ink\InstrumentSnap.cs" />
     <Compile Include="UI\MainWindow.InstrumentGuard.cs" />
+    <Compile Include="UI\MainWindow.Geometry.cs" />
+    <Compile Include="Ink\GeometryShapes.cs" />
+    <Compile Include="Ink\GeometryGuides.cs" />
+    <Compile Include="Ink\GeometryOverlay.cs" />
     <Compile Include="UI\MainWindow.xaml.cs"><DependentUpon>MainWindow.xaml</DependentUpon></Compile>
     <Compile Include="UI\MainWindow.Tools.cs" />
     <Compile Include="UI\MainWindow.Eraser.cs" />

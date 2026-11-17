@@ -3,7 +3,7 @@ using System.Windows.Media;
 
 namespace MinamotoBoard.Ink
 {
-    public enum BoardTool { Pen, Eraser, Ruler, SetSquare, Compass, Bucket, Highlighter, SetSquare30 }
+    public enum BoardTool { Pen, Eraser, Ruler, SetSquare, Compass, Bucket, Highlighter, SetSquare30, Shapes2D, Shapes3D }
 
     public sealed class DrawingToolOptions
     {

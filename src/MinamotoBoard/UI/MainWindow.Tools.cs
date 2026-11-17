@@ -107,11 +107,15 @@ namespace MinamotoBoard.UI
 
         private void BuildToolbar()
         {
-            foreach (BoardTool kind in new[] { BoardTool.Pen, BoardTool.Highlighter, BoardTool.Eraser, BoardTool.Ruler, BoardTool.SetSquare, BoardTool.SetSquare30, BoardTool.Compass, BoardTool.Bucket })
+            foreach (BoardTool kind in new[] { BoardTool.Pen, BoardTool.Highlighter, BoardTool.Eraser, BoardTool.Ruler, BoardTool.SetSquare, BoardTool.SetSquare30, BoardTool.Compass, BoardTool.Shapes2D, BoardTool.Shapes3D, BoardTool.Bucket })
             {
                 BoardTool selected = kind;
                 toolOptions.Add(kind, new DrawingToolOptions { Width = kind == BoardTool.Eraser ? 32 : kind == BoardTool.Highlighter ? 20 : 4, Highlighter = kind == BoardTool.Highlighter, Color = kind == BoardTool.Highlighter ? Color.FromRgb(255, 213, 79) : Colors.White });
-                Button button = IconButton(ToolbarIcons.Tool(kind), ToolbarIcons.Name(kind), delegate { SelectTool(selected); });
+                Button button = IconButton(ToolbarIcons.Tool(kind), ToolbarIcons.Name(kind), delegate
+                {
+                    if (IsGeometryTool(selected)) ShowOptions(toolButtons[selected], selected);
+                    else SelectTool(selected);
+                });
                 toolButtons.Add(kind, button);
                 if (!InstrumentLayer.IsInstrument(kind)) BindOptionsGesture(button, delegate { return selected; }, false);
             }
@@ -231,6 +235,11 @@ namespace MinamotoBoard.UI
         private void ApplyToolOptions()
         {
             DrawingToolOptions settings = toolOptions[activeTool];
+            GeometryBoard.Options = settings;
+            GeometryBoard.ShowGuides = activeTool == BoardTool.Shapes3D ? preferences.ShapeGuides3D : preferences.ShapeGuides2D;
+            GeometryBoard.StandardShape = activeTool == BoardTool.Shapes3D ? preferences.StandardShapes3D : preferences.StandardShapes2D;
+            GeometryBoard.Shape = activeTool == BoardTool.Shapes3D ? ValidShape(preferences.Shape3D, true) : ValidShape(preferences.Shape2D, false);
+            GeometryBoard.Visibility = IsGeometryTool(activeTool) ? Visibility.Visible : Visibility.Collapsed;
             tools.SetEraserStyle(toolOptions[BoardTool.Eraser].Style == 1);
             tools.SetEraserWidth(toolOptions[BoardTool.Eraser].Width);
             Board.LiveHighlighter = activeTool == BoardTool.Highlighter;
@@ -239,7 +248,7 @@ namespace MinamotoBoard.UI
             Board.EraserCursor = activeTool == BoardTool.Eraser;
             Board.EraserDiameter = toolOptions[BoardTool.Eraser].Width;
             if (activeTool == BoardTool.Eraser) tools.UseEraser();
-            else if (activeTool == BoardTool.Bucket)
+            else if (activeTool == BoardTool.Bucket || IsGeometryTool(activeTool))
             { Board.EditingMode = InkCanvasEditingMode.None; Board.EditingModeInverted = InkCanvasEditingMode.None; }
             else { Board.DefaultDrawingAttributes = settings.Attributes(); tools.UsePen(); }
             if (Board.LiveHighlighter || Board.DashedInk) Board.EditingMode = InkCanvasEditingMode.None;
@@ -309,7 +318,25 @@ namespace MinamotoBoard.UI
                 style.SelectionChanged += delegate { settings.Style = style.SelectedIndex; ApplyToolOptions(); };
                 ToolOptionsPanel.Children.Add(style);
             }
+            if (IsGeometryTool(kind))
+            {
+                CheckBox standard = new CheckBox { Content = Localizer.T("标准图形"), MinHeight = 36,
+                    VerticalContentAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 10, 0, 4),
+                    IsChecked = kind == BoardTool.Shapes3D ? preferences.StandardShapes3D : preferences.StandardShapes2D };
+                standard.Checked += delegate { SetStandardShapes(kind, true); };
+                standard.Unchecked += delegate { SetStandardShapes(kind, false); };
+                ToolOptionsPanel.Children.Add(standard);
+                CheckBox guides = new CheckBox { Content = Localizer.T("显示辅助线和标识"), MinHeight = 36,
+                    VerticalContentAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 10, 0, 4),
+                    IsChecked = kind == BoardTool.Shapes3D ? preferences.ShapeGuides3D : preferences.ShapeGuides2D };
+                guides.Checked += delegate { SetShapeGuides(kind, true); };
+                guides.Unchecked += delegate { SetShapeGuides(kind, false); };
+                ToolOptionsPanel.Children.Add(guides);
+                AddShapeChoices(kind);
+            }
+            ToolOptionsScroll.MaxHeight = Math.Max(160, Math.Min(640, ActualHeight - 150));
             ToolOptionsPopup.PlacementTarget = source; ToolOptionsPopup.IsOpen = true;
+            ToolOptionsScroll.ScrollToTop();
         }
 
         private static void AlignOptions(ComboBox combo)
@@ -518,7 +545,7 @@ namespace MinamotoBoard.UI
             public readonly List<Stroke[]> Undo = new List<Stroke[]>();
             public readonly List<Stroke[]> Redo = new List<Stroke[]>();
         }
-        private void CancelToolWork() { if (fillWork != null) fillWork.Cancel(); }
+        private void CancelToolWork() { if (fillWork != null) fillWork.Cancel(); GeometryBoard.CancelDrawing(); }
         private void EraseFillAt(Point point, int pointer, bool begin)
         {
             Point previous;

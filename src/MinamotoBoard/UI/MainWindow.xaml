@@ -31,7 +31,8 @@
   <ink:HighlighterCanvas x:Name="Board" Background="#236B45" ClipToBounds="True" Focusable="True" />
   <Grid x:Name="PluginOverlay" ClipToBounds="True" />
    <ink:InstrumentLayer x:Name="Instruments" ClipToBounds="True" />
-   <Canvas x:Name="EraserOverlay" IsHitTestVisible="False" ClipToBounds="True" />
+    <ink:GeometryOverlay x:Name="GeometryBoard" Visibility="Collapsed" ClipToBounds="True" />
+    <Canvas x:Name="EraserOverlay" IsHitTestVisible="False" ClipToBounds="True" />
    <TextBlock x:Name="DebugIndicator" Text="Debug Mode" Visibility="Collapsed" IsHitTestVisible="False"
      HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12" Foreground="White" Background="#B0000000" Padding="8,4" />
   <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="12">
@@ -55,7 +56,9 @@
   </Border>
   <Popup x:Name="ToolOptionsPopup" Placement="Top" StaysOpen="False" AllowsTransparency="True" PopupAnimation="None" VerticalOffset="-12">
    <Border Background="#FCFDFB" BorderBrush="#CCD8D0" BorderThickness="1" CornerRadius="10" Padding="16" Width="300">
-    <StackPanel x:Name="ToolOptionsPanel" />
+     <ScrollViewer x:Name="ToolOptionsScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="640">
+      <StackPanel x:Name="ToolOptionsPanel" />
+     </ScrollViewer>
    </Border>
   </Popup>
  </Grid>

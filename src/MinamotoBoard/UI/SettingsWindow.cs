@@ -248,6 +248,10 @@ namespace MinamotoBoard.UI
             page.Children.Add(ToolChoice("防止误触", new[] { "关", "开", "严格", "强制" },
                 Math.Max(0, Math.Min(3, preferences.InstrumentTouchGuard)), delegate(int index)
                 { preferences.InstrumentTouchGuard = index; toolsChanged(); }, true));
+            page.Children.Add(ToolHeading("几何图形", 20));
+            UIElement flatten = ToolSwitch("直接平面化", true, delegate(bool enabled) { });
+            flatten.IsEnabled = false;
+            page.Children.Add(flatten);
             return new ScrollViewer { Content = page, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
         }
 

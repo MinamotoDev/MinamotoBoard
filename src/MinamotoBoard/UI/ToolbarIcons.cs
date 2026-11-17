@@ -20,6 +20,8 @@ namespace MinamotoBoard.UI
                 case BoardTool.SetSquare: return Vector("M5,4 L28,27 H5 Z M10,16 L16,22 H10 Z M5,11 H8 M5,18 H8 M5,24 H8");
                 case BoardTool.SetSquare30: return Vector("M9,3 V29 H25 Z M13,18 V25 H17 Z M9,10 H12 M9,17 H12 M9,24 H12");
                 case BoardTool.Compass: return Vector("M16,3 V7 M13,10 A3,3 0 1 1 19,10 A3,3 0 1 1 13,10 M14,13 L6,29 M18,13 L26,29 M10,21 H22");
+                case BoardTool.Shapes2D: return Vector("M3,5 H18 V20 H3 Z M13,28 L22,12 31,28 Z");
+                case BoardTool.Shapes3D: return Vector("M4,10 L20,10 28,4 12,4 Z M4,10 V27 H20 V10 M20,27 L28,21 V4");
                 default: return Vector("M8,5 L23,20 13,29 3,19 Z M6,15 H18 M5,2 L12,9 M26,17 C21,24 22,28 26,28 C30,28 31,24 26,17 Z");
             }
         }
@@ -69,6 +71,8 @@ namespace MinamotoBoard.UI
                 case BoardTool.SetSquare: return Localizer.T("45° 三角板");
                 case BoardTool.SetSquare30: return Localizer.T("30° / 60° 三角板");
                 case BoardTool.Compass: return Localizer.T("圆规");
+                case BoardTool.Shapes2D: return Localizer.T("二维图形");
+                case BoardTool.Shapes3D: return Localizer.T("平面化三维图形");
                 default: return Localizer.T("油漆桶");
             }
         }

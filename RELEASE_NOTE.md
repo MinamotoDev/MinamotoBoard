@@ -5,7 +5,7 @@
 
 ## New Features and Bug Fixes
 
-- Added accidental touch prevention for drawing instruments.
+- Added geometric shape drawing.
 
 ## System Requirements and Dependencies
 
@@ -21,7 +21,7 @@
 
 ## 新機能と不具合の修正
 
-- 定規・コンパスの誤操作防止機能を追加しました。
+- 図形の描画機能を追加しました。
 
 ## 動作環境と依存関係
 
@@ -37,7 +37,7 @@
 
 ## 新功能和错误修复
 
-- 新增尺规防误触功能。
+- 新增几何图形绘制功能。
 
 ## 配置要求和依赖
 
@@ -53,7 +53,7 @@
 
 ## 新功能與錯誤修正
 
-- 新增尺規防誤觸功能。
+- 新增幾何圖形繪製功能。
 
 ## 系統需求與相依性
 
