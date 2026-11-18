@@ -5,7 +5,7 @@
 
 ## New Features and Bug Fixes
 
-- Added geometric shape drawing.
+- Fixed known issues and improved the user experience.
 
 ## System Requirements and Dependencies
 
@@ -21,7 +21,7 @@
 
 ## 新機能と不具合の修正
 
-- 図形の描画機能を追加しました。
+- 既知の問題を修正し、使い勝手を改善しました。
 
 ## 動作環境と依存関係
 
@@ -37,7 +37,7 @@
 
 ## 新功能和错误修复
 
-- 新增几何图形绘制功能。
+- 解决已知问题，优化使用体验。
 
 ## 配置要求和依赖
 
@@ -53,7 +53,7 @@
 
 ## 新功能與錯誤修正
 
-- 新增幾何圖形繪製功能。
+- 修正已知問題，改善使用體驗。
 
 ## 系統需求與相依性
 

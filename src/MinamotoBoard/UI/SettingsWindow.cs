@@ -436,7 +436,7 @@ namespace MinamotoBoard.UI
             TextBlock contributors = new TextBlock { FontSize = 16, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 12) };
             BindText(delegate { contributors.Text = Localizer.T("贡献者"); }); layout.Children.Add(contributors);
             layout.Children.Add(Maintainer("MinamotoDev", "MinamotoDev.png", "https://github.com/MinamotoDev"));
-            layout.Children.Add(Maintainer("丹羽　空", "NiwaSora.jpg", null));
+            layout.Children.Add(Maintainer("吉住　あお", "NiwaSora.jpg", null, "よしすみ"));
             layout.Children.Add(labelDebugMode);
             Loaded += delegate
             {
@@ -447,7 +447,7 @@ namespace MinamotoBoard.UI
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
         }
 
-        private UIElement Maintainer(string name, string avatar, string address)
+        private UIElement Maintainer(string name, string avatar, string address, string reading = null)
         {
             DockPanel row = new DockPanel { Margin = new Thickness(0, 0, 0, 16) };
             Image image = AssetImage(avatar, 56);
@@ -477,6 +477,23 @@ namespace MinamotoBoard.UI
             }
             image.Margin = new Thickness(0, 0, 14, 0);
             DockPanel.SetDock(image, Dock.Left); row.Children.Add(image);
+            if (reading != null)
+            {
+                int separator = name.IndexOf('　');
+                Grid caption = new Grid { HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
+                caption.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                caption.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                caption.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                caption.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                caption.Children.Add(new TextBlock { Text = reading, FontSize = 10, HorizontalAlignment = HorizontalAlignment.Center });
+                TextBlock family = new TextBlock { Text = name.Substring(0, separator), FontSize = 16, HorizontalAlignment = HorizontalAlignment.Center };
+                Grid.SetRow(family, 1); caption.Children.Add(family);
+                TextBlock given = new TextBlock { Text = name.Substring(separator), FontSize = 16 };
+                Grid.SetRow(given, 1); Grid.SetColumn(given, 1); caption.Children.Add(given);
+                AutomationProperties.SetName(caption, name);
+                row.Children.Add(caption);
+                return row;
+            }
             TextBlock label = new TextBlock { FontSize = 16, VerticalAlignment = VerticalAlignment.Center };
             if (address == null) label.Text = name;
             else label.Inlines.Add(CreateLink(name, address));
