@@ -1,5 +1,5 @@
 param(
-    [string]$AppSource = 'artifacts\release-0.11.1\app',
+    [string]$AppSource = 'artifacts\release-0.11.2\app',
     [string]$WixDll = 'artifacts\tools\wix5\tools\net6.0\any\wix.dll',
     [string]$WixUI = 'artifacts\tools\wix-ui5\wixext5\WixToolset.UI.wixext.dll'
 )

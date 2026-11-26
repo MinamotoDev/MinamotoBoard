@@ -15,7 +15,8 @@ namespace MinamotoBoard.UI
 
         private static GeometryShape ValidShape(GeometryShape shape, bool solid)
         {
-            // Old saved choices map to the remaining unified rectangle/cube entries.
+            // Map retired palette entries when restoring older preferences.
+            if (shape == GeometryShape.Ellipse) shape = GeometryShape.Circle;
             if (shape == GeometryShape.Rectangle) shape = GeometryShape.Square;
             if (shape == GeometryShape.Cuboid) shape = GeometryShape.Cube;
             return Enum.IsDefined(typeof(GeometryShape), shape) && GeometryShapes.IsSolid(shape) == solid
@@ -30,7 +31,7 @@ namespace MinamotoBoard.UI
             foreach (GeometryShape shape in Enum.GetValues(typeof(GeometryShape)))
             {
                 if (GeometryShapes.IsSolid(shape) != (kind == BoardTool.Shapes3D)) continue;
-                if (shape == GeometryShape.Rectangle || shape == GeometryShape.Cuboid) continue;
+                if (ValidShape(shape, GeometryShapes.IsSolid(shape)) != shape) continue;
                 GeometryShape choice = shape;
                 string name = Localizer.T(GeometryShapes.Name(shape));
                 DrawingGroup drawing = new DrawingGroup();
